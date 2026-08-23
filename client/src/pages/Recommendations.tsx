@@ -1,0 +1,41 @@
+import { Breadcrumb, EcdatHeader } from "@/components/EcdatHeader";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { startLogin } from "@/const";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { defaultScenario } from "@/lib/ecdatUi";
+import { useActiveEcdatScan } from "@/hooks/useActiveEcdatScan";
+import { trpc } from "@/lib/trpc";
+import { ArrowRight, BadgeCheck, Gauge, LockKeyhole, ShieldCheck, SlidersHorizontal, TimerReset } from "lucide-react";
+import { useEffect, useState } from "react";
+
+export default function Recommendations() {
+  const { findings: activeFindings, recommendations } = useActiveEcdatScan();
+  const findings = new Map(activeFindings.map(item => [item.findingKey, item]));
+  return <div className="mx-auto max-w-[1550px]"><Breadcrumb section="PQC guidance" /><EcdatHeader eyebrow="Context-aware recommendations" title="A recommendation must fit the job." description="ECDAT varies candidates, compatibility notes, priority, effort, and latency by cryptographic role and the observed data state, sensitivity, criticality, and environment." /><MoscaPlanner /><div className="mt-7 grid gap-4 xl:grid-cols-2">{recommendations.map(recommendation => { const finding = findings.get(recommendation.findingKey); return <article key={recommendation.findingKey} className="relative overflow-hidden rounded-3xl border border-white/8 bg-[#091423] p-6"><div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-cyan-300/[0.05] blur-2xl" /><div className="relative flex items-start justify-between gap-3"><div><p className="text-xs text-slate-500">{finding?.algorithm} · {finding?.cryptoRole}</p><h2 className="mt-1 font-display text-xl font-semibold tracking-[-0.03em] text-white">{recommendation.title}</h2></div><Badge variant="outline" className="border-cyan-200/20 bg-cyan-300/8 text-cyan-100">Priority {recommendation.priority}</Badge></div><div className="relative mt-6 grid gap-3 rounded-2xl border border-white/7 bg-[#06101c]/70 p-4 md:grid-cols-[1fr_auto_1fr]"><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Observed</p><p className="mt-1 text-sm text-slate-200">{finding?.algorithm}</p></div><ArrowRight className="h-4 w-4 self-center text-cyan-200" /><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Candidate path</p><p className="mt-1 text-sm font-medium text-cyan-100">{recommendation.candidate}</p></div></div><div className="relative mt-5 grid gap-4 md:grid-cols-2"><Info icon={ShieldCheck} label="Migration note" text={recommendation.migrationNotes} /><Info icon={BadgeCheck} label="Compatibility constraint" text={recommendation.compatibility} /></div><div className="relative mt-5 flex flex-wrap gap-2"><span className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-2 text-xs text-slate-300"><TimerReset className="h-3.5 w-3.5 text-amber-200" />{recommendation.indicativeEffort}</span><span className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-2 text-xs text-slate-300"><Gauge className="h-3.5 w-3.5 text-cyan-200" />{recommendation.indicativeLatency}</span></div></article>; })}</div><p className="mt-5 text-xs leading-5 text-slate-600">All effort and latency figures are explicitly indicative planning aids. Validate protocol support, performance, and operational impact in the target environment before implementation.</p></div>;
+}
+function Info({ icon: Icon, label, text }: { icon: typeof ShieldCheck; label: string; text: string }) { return <div><p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600"><Icon className="h-3.5 w-3.5" />{label}</p><p className="mt-2 text-xs leading-5 text-slate-400">{text}</p></div>; }
+
+function MoscaPlanner() {
+  const { isAuthenticated } = useAuth();
+  const scans = trpc.ecdat.scans.useQuery(undefined, { enabled: isAuthenticated });
+  const scanKey = scans.data?.[0]?.scanKey;
+  const detail = trpc.ecdat.detail.useQuery({ scanKey: scanKey ?? "pending" }, { enabled: Boolean(scanKey) });
+  const [dataLifetimeYears, setDataLifetimeYears] = useState(15);
+  const [migrationMonths, setMigrationMonths] = useState(18);
+  const [crqcHorizonYears, setCrqcHorizonYears] = useState(9);
+  useEffect(() => {
+    const assumptions = detail.data?.assumptions;
+    if (!assumptions) return;
+    const find = (key: string) => Number(assumptions.find(item => item.assumptionKey === key)?.value);
+    setDataLifetimeYears(find("data-lifetime") || 15);
+    setMigrationMonths(find("migration-time") || 18);
+    setCrqcHorizonYears(find("crqc-horizon") || 9);
+  }, [detail.data?.assumptions]);
+  const save = trpc.ecdat.saveMoscaAssumptions.useMutation({ onSuccess: () => detail.refetch() });
+  const margin = (dataLifetimeYears + migrationMonths / 12 - crqcHorizonYears).toFixed(1);
+  const disabled = !scanKey || save.isPending;
+  return <section className="mt-7 rounded-3xl border border-cyan-200/12 bg-[linear-gradient(120deg,rgba(34,211,238,.08),rgba(9,20,35,.9)_44%)] p-5 md:p-6"><div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"><div><div className="flex items-center gap-2 text-xs font-medium text-cyan-100"><SlidersHorizontal className="h-4 w-4" />Mosca-style planning controls</div><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Set the representative data lifetime, migration duration, and planning horizon. Saving writes authenticated user assumptions and recalculates the saved scan’s risk and qualified HNDL exposure.</p></div><Badge variant="outline" className="w-fit border-cyan-200/20 bg-cyan-300/8 text-cyan-100">Margin: {margin} years</Badge></div><div className="mt-5 grid gap-3 md:grid-cols-3"><MoscaInput label="Data lifetime" value={dataLifetimeYears} suffix="years" setValue={setDataLifetimeYears} /><MoscaInput label="Migration time" value={migrationMonths} suffix="months" setValue={setMigrationMonths} /><MoscaInput label="CRQC planning horizon" value={crqcHorizonYears} suffix="years" setValue={setCrqcHorizonYears} /></div><div className="mt-5 flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-slate-500">{scanKey ? "These inputs apply to your most recent saved scenario run." : "Save a demo scan to persist and recalculate scenario assumptions."}</p>{!isAuthenticated ? <Button onClick={() => startLogin()} className="bg-cyan-200 text-[#072033] hover:bg-cyan-100"><LockKeyhole className="h-4 w-4" />Sign in to save inputs</Button> : <Button disabled={disabled} onClick={() => scanKey && save.mutate({ scanKey, dataLifetimeYears, migrationMonths, crqcHorizonYears })} className="bg-cyan-200 text-[#072033] hover:bg-cyan-100">{save.isPending ? "Recalculating…" : "Save and recalculate"}</Button>}</div></section>;
+}
+function MoscaInput({ label, value, suffix, setValue }: { label: string; value: number; suffix: string; setValue: (value: number) => void }) { return <label className="rounded-xl border border-white/8 bg-[#06101c]/65 p-3"><span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">{label}</span><div className="mt-2 flex items-center gap-2"><Input type="number" min={1} value={value} onChange={event => setValue(Number(event.target.value))} className="h-8 border-0 bg-transparent px-0 font-display text-lg text-white focus-visible:ring-0" /><span className="text-xs text-slate-500">{suffix}</span></div></label>; }

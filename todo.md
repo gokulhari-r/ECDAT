@@ -1,0 +1,29 @@
+# Project TODO
+
+- [x] Define persisted scan, finding, assumption, recommendation, and relationship data models in Drizzle schema.
+- [x] Apply a single database migration for ECDAT scan history and associated analysis records.
+- [x] Implement authenticated tRPC procedures to create seeded demo scans, list user scan history, retrieve scan details, update risk assumptions, and return export payloads.
+- [x] Create deterministic seeded scenarios for Python web apps, Java enterprise services, container microservices, and compliance-heavy systems.
+- [x] Normalize each seeded finding into an evidence-backed CBOM record with algorithm, role, source location, version, usage context, confidence, and provenance.
+- [x] Recompute risk level and qualified HNDL exposure from persisted Mosca assumptions on every scan-detail and export request.
+- [x] Make recommendation candidates, priorities, constraints, and indicative estimates materially vary by data state, sensitivity, criticality, and usage context as well as cryptographic role and environment.
+- [x] Add explicit certificate and certificate-authority nodes with typed PKI relationships in the dependency graph.
+- [x] Derive blast-radius summaries and remediation-wave ordering from persisted dependency relationships.
+- [x] Build a polished responsive application shell with navigation for scan intake, dashboard, inventory, graph, recommendations, migration roadmap, and reports.
+- [x] Build a zero-friction scan intake with repository URL entry and selectable seeded scenario cards.
+- [x] Build an executive dashboard with scan progress, key metrics, risk distribution, quantum-risk timeline, HNDL alerts, and finding drill-down.
+- [x] Build CBOM inventory, recommendation, dependency graph, migration roadmap, and reports views using live tRPC data.
+- [x] Add JSON/CycloneDX-oriented CBOM and HTML report export actions.
+- [x] Display separate classical-risk and quantum-risk dimensions, business criticality, and data-lifetime classifications in the inventory and finding details.
+- [x] Add a quantum-readiness posture view with current exposure and seeded historical trend data that is clearly presented as demo history.
+- [x] Add the Quantum Descent signature view as an alternate enterprise-to-system-to-asset-to-risk navigation experience.
+- [x] Add pure active-scan selection tests for latest saved-scan choice, signed-out fallback, and empty-history fallback.
+- [x] Re-run and record fallback visual verification for Inventory, Graph, Recommendations, Roadmap, and Quantum Descent after the shared hook wiring.
+- [ ] Perform and record signed-in saved-scan visual verification for the five analytical workspace views after a demo run is persisted.
+- [ ] Add loading, error, empty, accessibility, and responsive states across core flows.
+- [x] Add Vitest coverage for risk scoring, seeded scan creation, and exported CBOM payloads.
+- [x] Run type checks and tests, verify the interface visually at desktop and mobile widths, and resolve identified issues.
+- [x] Recalculate the active saved scan’s dashboard risk and HNDL metric totals from its current Mosca-style assumptions.
+- [x] Wire the Home dashboard to the active saved scan so current Mosca assumptions update displayed critical and HNDL metrics.
+- [x] Add a dashboard finding drill-down that leads directly to the evidence detail for the selected finding.
+- [x] Add Vitest coverage for seeded scenario run persistence through the createScenarioRun workflow.

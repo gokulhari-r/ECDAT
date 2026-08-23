@@ -1,0 +1,20 @@
+import { Breadcrumb, EcdatHeader } from "@/components/EcdatHeader";
+import { useActiveEcdatScan } from "@/hooks/useActiveEcdatScan";
+import { ArrowDown, CircleDot, Orbit, ScanEye, ShieldAlert } from "lucide-react";
+import { useState } from "react";
+
+const stages = [
+  { level: "L0", title: "Enterprise", text: "Overall cryptographic posture and readiness", icon: Orbit },
+  { level: "L1", title: "System", text: "Business service and external exposure", icon: ScanEye },
+  { level: "L2", title: "Crypto assets", text: "Algorithms, libraries, certificates, and protocols", icon: CircleDot },
+  { level: "L3", title: "Risk verdict", text: "Evidence-backed priority and migration action", icon: ShieldAlert },
+];
+
+export default function QuantumDescent() {
+  const { quantumReadiness, displayName, findings, hndlCount, recommendations } = useActiveEcdatScan();
+  const [level, setLevel] = useState(0);
+  const active = stages[level];
+  const Icon = active.icon;
+  const detail = level === 0 ? `${quantumReadiness}% quantum readiness across the active scan.` : level === 1 ? displayName : level === 2 ? `${findings.length} sampled cryptographic findings with provenance.` : `${hndlCount} potential HNDL indicators and ${recommendations.length} prioritised action paths.`;
+  return <div className="mx-auto max-w-[1350px]"><Breadcrumb section="Quantum Descent" /><EcdatHeader eyebrow="Signature navigation mode" title="Descend from posture to proof." description="Quantum Descent is not a separate security engine. It is a spatial way to navigate the same ECDAT intelligence from enterprise posture to a specific risk decision." /><div className="mt-8 grid gap-5 lg:grid-cols-[0.65fr_1fr]"><section className="rounded-3xl border border-white/8 bg-[#091423] p-5"><p className="text-xs leading-5 text-slate-500">Navigation levels</p><div className="mt-5 space-y-2">{stages.map((stage, index) => { const StageIcon = stage.icon; return <button key={stage.level} onClick={() => setLevel(index)} className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left transition ${level === index ? "bg-cyan-300/10 text-cyan-100" : "text-slate-500 hover:bg-white/[0.035] hover:text-slate-300"}`}><span className="grid h-9 w-9 place-items-center rounded-xl bg-white/5"><StageIcon className="h-4 w-4" /></span><span><span className="block text-[10px] font-semibold uppercase tracking-[0.15em] opacity-60">{stage.level}</span><span className="block text-sm font-medium">{stage.title}</span></span></button>; })}</div></section><section className="relative min-h-[465px] overflow-hidden rounded-3xl border border-cyan-200/12 bg-[radial-gradient(circle_at_center,rgba(34,211,238,.14),transparent_18%),radial-gradient(circle_at_center,rgba(14,116,144,.13),transparent_43%),#071423] p-6"><div className="absolute inset-0 grid place-items-center"><div className="h-[76%] w-[76%] rounded-full border border-cyan-200/10" /><div className="absolute h-[52%] w-[52%] rounded-full border border-cyan-200/14" /><div className="absolute h-[30%] w-[30%] rounded-full border border-cyan-200/20" /></div><div className="relative z-10 flex h-full flex-col items-center justify-center text-center"><span className="grid h-16 w-16 place-items-center rounded-3xl border border-cyan-200/25 bg-cyan-300/10 text-cyan-100 shadow-[0_0_50px_rgba(34,211,238,.15)]"><Icon className="h-7 w-7" /></span><p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-200/60">{active.level} / {active.title}</p><h2 className="mt-2 font-display text-3xl font-semibold tracking-[-0.04em] text-white">{active.text}</h2><p className="mt-3 max-w-md text-sm leading-6 text-slate-400">{detail}</p>{level < stages.length - 1 ? <button onClick={() => setLevel(level + 1)} className="mt-7 inline-flex items-center gap-2 rounded-xl border border-cyan-200/20 bg-cyan-300/10 px-4 py-2 text-xs font-medium text-cyan-100 transition hover:bg-cyan-300/15">Descend one level <ArrowDown className="h-3.5 w-3.5" /></button> : null}</div></section></div></div>;
+}
