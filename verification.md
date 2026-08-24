@@ -96,3 +96,17 @@ The desktop field was verified in the dark workspace. It now uses a deep blue-bl
 The responsive 390-pixel fallback was rechecked. It retained its keyboard-addressable calculated entity cards, while adopting the same blue depth field, compact elevated cards, amber/coral selected state, and no-WebGL guidance. The normal-mode exit, evidence detail, and data labels remained unchanged.
 
 The style update intentionally removed the Spatial Mode blur treatment and keeps non-essential motion behind the existing reduced-motion preference. TypeScript validation passed and the full Vitest suite remained green with **21 tests** across six files.
+
+## Improvement plan Phase 1 audit
+
+The supplied Phase 1 blocker plan was reconciled with the existing platform. The live project already contains the required Drizzle schema, including authenticated users plus scan, finding, assumption, recommendation, relationship, and migration-wave persistence. It also uses managed environment configuration rather than a committed local `.env` file.
+
+The development service is running, `pnpm check` completed successfully, and the full Vitest suite passed with **21 tests**. A direct request to the registered public `ecdat.preview` tRPC procedure returned HTTP **200**, confirming the seeded-preview API surface remains reachable. No replacement schema, local credentials, or new bootstrap configuration was introduced.
+
+## Improvement plan Phase 2 — seeded exports
+
+The Reports workspace now supports both authenticated saved-scan exports and unauthenticated seeded-demo exports. A public `ecdat.previewExport` tRPC procedure builds the same CycloneDX-oriented CBOM shape and executive HTML report from deterministic scenario evidence without creating a database record. Its direct endpoint probe returned HTTP **200** with a populated response.
+
+Reports clearly identifies whether the source is a saved active scan or a seeded demo preview, provides generation feedback, exposes CBOM JSON and executive HTML downloads in either mode, and includes a read-only sample of exported findings before download. The saved-scan flow was visually verified with the Mercury Payments scan, including its evidence cards. TypeScript validation passed, and the full suite now passes with **22 tests** across six files.
+
+The public fallback was rechecked across Command Center, CBOM Inventory, Dependency Graph, PQC Guidance, Migration Roadmap, Reports, and Quantum Descent. All routes rendered their active seeded evidence model without a route-specific crash or empty-state divergence. The Reports route retains its labelled seeded export path when no saved scan is selected; the authenticated Mercury Payments view continues to use the saved-scan export path.

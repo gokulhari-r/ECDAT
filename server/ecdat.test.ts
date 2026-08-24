@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCycloneDxOrientedCbom } from "./ecdatExport";
 import { buildBlastRadius, deriveRemediationWaves } from "./ecdatGraph";
+import { buildSeededPreviewExport } from "./ecdatPreviewExport";
 import { getSeededScenario } from "./ecdatSeed";
 import { evaluateFindingRisk, scoreMoscaRisk, summarizeEvaluatedFindings } from "./ecdatRisk";
 
@@ -32,6 +33,15 @@ describe("ECDAT risk intelligence", () => {
     });
     expect(cbom.components).toHaveLength(scenario.findings.length);
     expect(cbom.components[0]?.properties.some(property => property.name === "ecdat:provenance")).toBe(true);
+  });
+
+  it("builds no-database seeded preview exports with the same CBOM evidence shape", () => {
+    const scenario = getSeededScenario("python-web");
+    const payload = buildSeededPreviewExport(scenario, new Date("2026-08-24T00:00:00Z"));
+    expect(payload.source).toBe("seeded-preview");
+    expect(payload.cbom.serialNumber).toBe("urn:uuid:preview_python-web");
+    expect(payload.cbom.components).toHaveLength(scenario.findings.length);
+    expect(payload.reportHtml).toContain(scenario.displayName);
   });
 
   it("applies user-configured Mosca inputs to HNDL assessment", () => {

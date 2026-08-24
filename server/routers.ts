@@ -4,6 +4,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { createScenarioRun, getExportPayload, getScanDetail, listUserScans, saveMoscaAssumptions } from "./ecdat";
+import { buildSeededPreviewExport } from "./ecdatPreviewExport";
 import { getSeededScenario, scenarioCatalog, scenarioIds } from "./ecdatSeed";
 
 export const appRouter = router({
@@ -29,6 +30,9 @@ export const appRouter = router({
     preview: publicProcedure
       .input(z.object({ scenario: z.enum(scenarioIds) }).optional())
       .query(({ input }) => getSeededScenario(input?.scenario ?? "python-web")),
+    previewExport: publicProcedure
+      .input(z.object({ scenario: z.enum(scenarioIds) }).optional())
+      .query(({ input }) => buildSeededPreviewExport(getSeededScenario(input?.scenario ?? "python-web"))),
     runDemo: protectedProcedure
       .input(z.object({ scenario: z.enum(scenarioIds), repositoryUrl: z.string().url().optional() }))
       .mutation(({ ctx, input }) => createScenarioRun(ctx.user.id, input.scenario, input.repositoryUrl)),

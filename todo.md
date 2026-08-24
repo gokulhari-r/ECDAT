@@ -48,3 +48,15 @@
 - [x] Inspect the supplied Zumerlab design package and map its transferable visual cues to the ECDAT Spatial Mode without weakening data readability or accessibility.
 - [x] Restyle the Spatial Mode WebGL scene, controls, detail panels, and responsive fallback using the approved reference cues while preserving scan-backed behavior.
 - [x] Visually verify the Zumerlab-inspired Spatial Mode on desktop and mobile, then document and checkpoint the visual update.
+- [x] Audit the existing schema, managed configuration, startup flow, and tRPC endpoint against Phase 1 without replacing working infrastructure.
+- [x] Verify seeded fallback behavior on every ECDAT page and add demo-capable Reports preview/export behavior.
+- [x] Re-verify seeded fallback across Command Center, Inventory, Dependency Graph, PQC Guidance, Roadmap, Reports, and Quantum Descent after the Reports export change; fix and document any divergence.
+- [ ] Enhance the Command Center with data-derived exposure visuals, recent activity, and KPI drill-downs.
+- [ ] Add Inventory sorting, filtering, pagination, fuller CBOM columns, and evidence-backed recommendation/blast-radius detail context.
+- [ ] Upgrade Dependency Graph layout, pan/zoom, selected-edge focus, node legend, and blast-radius severity context.
+- [ ] Improve recommendation comparisons, migration-path visualization, Mosca timeline clarity, and roadmap sequencing/dependencies/effort summary.
+- [x] Extend Reports with CycloneDX visibility, generation feedback, report preview, and seeded-demo export behavior.
+- [ ] Refine Quantum Descent normal-mode interaction, spatial entry transition, depth indication, and top-level high-risk focus action without rebuilding Spatial Mode.
+- [ ] Add global command search, actionable notifications, reusable evidence-detail access, and a branded initialization sequence.
+- [ ] Apply token-aligned visual polish, respectful motion, responsive refinements, and richer empty states across upgraded routes.
+- [ ] Add or update automated coverage and complete phased regression, visual verification, documentation, and checkpointing.
