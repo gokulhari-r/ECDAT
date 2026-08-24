@@ -122,3 +122,37 @@ Recent activity now identifies whether the current context comes from saved scan
 CBOM Inventory now provides active-data search, risk, quantum-state, and environment filters; deterministic sorting by algorithm, risk, criticality, and confidence; pagination; and richer library/version, environment, sensitivity, confidence, and risk columns. Selected evidence retains its source-level metadata and now shows a relationship-derived blast-radius summary plus recommendation preview. The quantum-vulnerable filter was exercised on the Mercury Payments scan and correctly narrowed the view to RSA-2048 and ECDSA P-256.
 
 Dependency Graph now uses a deterministic type-aware layout from the active relationship model, with explicit node-type legend, drag pan, scroll/button zoom, reset, selected-edge focus, and focused blast-radius severity context. The RSA-2048 focus path was verified, showing the three observed IMPLEMENTS, PROTECTS, and SUPPORTS relationships with one high-risk linked finding. TypeScript validation passed and the full suite passes with **25 tests** across eight files.
+
+## Improvement plan Phase 5 — recommendations and roadmap
+
+PQC Guidance now presents a controlled Assess → Pilot → Roll out migration path, richer observed-versus-candidate comparisons, compatibility and HNDL context, and a Mosca-style planning timeline derived from the three editable planning inputs. The timeline is explicitly described as a planning aid rather than a forecast or delivery certainty. It was visually verified with the Mercury Payments recommendation set.
+
+Migration Roadmap now makes sequencing visible through wave gates and progress connectors, and adds an indicative aggregate effort summary parsed from the displayed wave labels. The Mercury Payments roadmap correctly reports **7–17 engineer-weeks across 3 labelled waves**, accompanied by a clear caveat that it excludes parallel work, staffing, dates, and production readiness. TypeScript validation passed and the full suite passes with **27 tests** across nine files.
+
+## Improvement plan Phase 6 — Quantum Descent
+
+Quantum Descent normal mode now presents active-scan depth cues for assets, relationship links, findings, and actions, together with a visible depth-progress indicator. The new **Focus highest risk** action enters Spatial Mode directly at the active scan’s risk lens and selected highest-risk RSA-2048 evidence, while retaining the existing normal Spatial Mode entry. The spatial deep link is now explicit (`?spatial=1`) and the Normal mode control correctly returns to the clean `/descent` route. Both transitions were visually verified against the Mercury Payments saved scan.
+
+## Improvement plan Phase 7 — global workspace access
+
+The dashboard shell now includes a keyboard-accessible global command search, opened by the visible Search workspace control or `Ctrl/Cmd+K`. It searches navigation, active observed evidence, and generated guidance. Selecting the RSA-2048 observed-evidence result was verified to open the corresponding Inventory detail route.
+
+The shell also provides a non-destructive Active risk signals panel derived only from the active scan’s critical or HNDL-qualified findings. The Mercury Payments notification panel correctly surfaced its RSA-2048 and ECDSA P-256 potential HNDL signals, each with direct evidence-detail access. TypeScript validation passed and the full suite passes with **28 tests** across ten files.
+
+The workspace now also displays a brief ECDAT Quantum Observatory initialization sequence on the first workspace load in a browser session. The overlay is explicitly pointer-transparent, auto-dismisses after a short interval, is bypassed under reduced-motion preference, and is suppressed on subsequent in-session route loads. TypeScript validation passed after its addition.
+
+The initialization overlay was visually verified through the development-only `?qaBoot=1` preview after clearing the session marker. The branded ECDAT Quantum Observatory sequence appeared over the already-rendered workspace, then auto-dismissed to reveal active controls. The overlay uses `pointer-events: none`, so it does not block interaction; reduced-motion and already-initialized sessions bypass it by design.
+
+The visible boot overlay’s pointer transparency was exercised directly: selecting the underlying Search workspace control while the overlay was visible opened the command palette, confirming no interaction interception. A repeat in-session `?qaBoot=1` load rendered without the overlay. A fresh development-only `?qaBoot=1&qaReduced=1` load also rendered without the overlay, confirming the reduced-motion bypass. The two preview query flags are development-only verification aids and do not alter normal workspace behavior.
+
+## Improvement plan Phase 8 — polish and resilience
+
+The shared visual system now has consistent visible focus rings, reduced-motion overrides for non-essential animations and smooth scrolling, and compact-screen padding/scrollbar refinements. The reusable workspace-state card now exposes status updates to assistive technology and adds contextual loading, error, and empty-state guidance rather than presenting an isolated message.
+
+At a 375-pixel viewport, the Command Center retained its mobile shell, readable hierarchy, primary search and theme actions, and vertically accessible demo intake. The CBOM Inventory empty-state route retained its compact filters and showed its clear no-record guidance without clipping the main workspace. Both views were visually verified after the polish update.
+
+Desktop and 375-pixel mobile checks were completed for Dependency Graph, PQC Guidance, Migration Roadmap, Reports, and Quantum Descent. Each retained readable hierarchy, route-specific actions, and the compact mobile shell without horizontal page overflow. The graph preserves its explicit zoom controls at small widths, the planning controls stack vertically, reports retain export context, and Quantum Descent retains its high-risk and Spatial Mode entry actions.
+
+The Dependency Graph development-only error route was also exercised after the `WorkspaceState` update. It rendered the enriched Workspace guidance card with a clear statement that the active scan was unchanged and an available Try again action. Final TypeScript validation and the full Vitest suite passed with **28 tests** across ten files.
+
+The Dependency Graph development-only loading route was exercised as well. It displayed the enhanced status card, the three-part loading indicator, and the new guidance that active-scan evidence, relationships, and generated guidance are being resolved. Together with the verified Inventory empty state and Graph error state, this confirms the shared loading, empty, and error guidance after the polish update.

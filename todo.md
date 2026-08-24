@@ -54,9 +54,16 @@
 - [x] Enhance the Command Center with data-derived exposure visuals, recent activity, and KPI drill-downs.
 - [x] Add Inventory sorting, filtering, pagination, fuller CBOM columns, and evidence-backed recommendation/blast-radius detail context.
 - [x] Upgrade Dependency Graph layout, pan/zoom, selected-edge focus, node legend, and blast-radius severity context.
-- [ ] Improve recommendation comparisons, migration-path visualization, Mosca timeline clarity, and roadmap sequencing/dependencies/effort summary.
+- [x] Improve recommendation comparisons, migration-path visualization, Mosca timeline clarity, and roadmap sequencing/dependencies/effort summary.
 - [x] Extend Reports with CycloneDX visibility, generation feedback, report preview, and seeded-demo export behavior.
-- [ ] Refine Quantum Descent normal-mode interaction, spatial entry transition, depth indication, and top-level high-risk focus action without rebuilding Spatial Mode.
-- [ ] Add global command search, actionable notifications, reusable evidence-detail access, and a branded initialization sequence.
-- [ ] Apply token-aligned visual polish, respectful motion, responsive refinements, and richer empty states across upgraded routes.
-- [ ] Add or update automated coverage and complete phased regression, visual verification, documentation, and checkpointing.
+- [x] Refine Quantum Descent normal-mode interaction, spatial entry transition, depth indication, and top-level high-risk focus action without rebuilding Spatial Mode.
+- [x] Add global command search, actionable notifications, reusable evidence-detail access, and a branded initialization sequence.
+- [x] Implement and verify a brief, accessible branded ECDAT initialization sequence without blocking the workspace or duplicating loading states.
+- [x] Visually verify the branded initialization overlay appears on a first session load, remains pointer-transparent, and is skipped after initialization or for reduced motion.
+- [x] Verify the visible branded initialization overlay allows an underlying workspace control to receive interaction, then document the outcome.
+- [x] Verify and document initialization-overlay bypass on a repeat in-session load and a reduced-motion preference before checkpointing.
+- [x] Apply token-aligned visual polish, respectful motion, responsive refinements, and richer empty states across upgraded routes.
+- [x] Verify the polished Graph, PQC Guidance, Roadmap, Reports, and Quantum Descent views at desktop and mobile widths.
+- [x] Exercise shared loading, error, and empty guidance after the WorkspaceState enhancement, then rerun complete regression validation before checkpointing.
+- [x] Exercise and document an upgraded route’s enhanced WorkspaceState loading guidance before checkpointing the polish phase.
+- [x] Add or update automated coverage and complete phased regression, visual verification, documentation, and checkpointing.
