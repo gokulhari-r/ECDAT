@@ -48,5 +48,3 @@
 - [x] Inspect the supplied Zumerlab design package and map its transferable visual cues to the ECDAT Spatial Mode without weakening data readability or accessibility.
 - [x] Restyle the Spatial Mode WebGL scene, controls, detail panels, and responsive fallback using the approved reference cues while preserving scan-backed behavior.
 - [x] Visually verify the Zumerlab-inspired Spatial Mode on desktop and mobile, then document and checkpoint the visual update.
-- [x] Define and implement controlled free-look navigation for the Spatial Mode 3D camera, including focus/reset compatibility and user guidance.
-- [x] Verify free-look controls do not affect the responsive 2D fallback, then document and checkpoint the update.

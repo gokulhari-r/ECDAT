@@ -96,11 +96,3 @@ The desktop field was verified in the dark workspace. It now uses a deep blue-bl
 The responsive 390-pixel fallback was rechecked. It retained its keyboard-addressable calculated entity cards, while adopting the same blue depth field, compact elevated cards, amber/coral selected state, and no-WebGL guidance. The normal-mode exit, evidence detail, and data labels remained unchanged.
 
 The style update intentionally removed the Spatial Mode blur treatment and keeps non-essential motion behind the existing reduced-motion preference. TypeScript validation passed and the full Vitest suite remained green with **21 tests** across six files.
-
-## Free-look navigation verification
-
-Spatial Mode now uses controlled free-look navigation in the WebGL field. Users can drag to look around the spatial scene, use **W/A/S/D** to move forward, left, backward, and right, and use **R/F** to move vertically. The interface surfaces these controls only for the WebGL scene.
-
-The camera placement logic was adjusted so it guides the user to a selected focus after an explicit view, search, selection, or reset action, then releases control to free-look movement. A sustained forward-input check visibly moved the camera closer to the observed enterprise clusters without an automatic snap-back. The existing **Reset view** action was then exercised and correctly returned the camera to the enterprise framing.
-
-At the 390-pixel mobile breakpoint, the spatial field remained on the accessible two-dimensional fallback with its calculated entity cards and no free-look control hints. TypeScript validation and the full Vitest suite remain green with **21 tests** across six files.

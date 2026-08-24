@@ -1,7 +1,7 @@
-import { FlyControls, Html, Line, PerspectiveCamera } from "@react-three/drei";
+import { Html, Line, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Vector3 } from "three";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import type { SpatialCluster, SpatialGraphNode } from "@/lib/spatialProjection";
 
 export type SceneNode = {
@@ -23,7 +23,6 @@ type SpatialSceneProps = {
   graphNodes: SpatialGraphNode[];
   edges: SceneEdge[];
   view: "enterprise" | "domain" | "ecosystem" | "artefact";
-  resetKey: string;
   selectedId?: string;
   onSelect: (id: string) => void;
 };
@@ -60,18 +59,12 @@ function layoutRing<T extends { id: string; label: string; kind: string; riskWei
   });
 }
 
-function CameraRig({ view, resetKey }: Pick<SpatialSceneProps, "view" | "resetKey">) {
+function CameraRig({ view }: { view: SpatialSceneProps["view"] }) {
   const { camera } = useThree();
   const target = useMemo(() => new Vector3(...cameraPositions[view]), [view]);
-  const shouldRecenter = useRef(true);
-  useEffect(() => {
-    shouldRecenter.current = true;
-  }, [resetKey]);
   useFrame(() => {
-    if (!shouldRecenter.current) return;
-    camera.position.lerp(target, 0.075);
+    camera.position.lerp(target, 0.055);
     camera.lookAt(0, 0, 0);
-    if (camera.position.distanceTo(target) < 0.03) shouldRecenter.current = false;
   });
   return null;
 }
@@ -100,7 +93,7 @@ function SpatialNode({ node, selected, onSelect }: { node: SceneNode; selected: 
   );
 }
 
-function SceneContents({ clusters, graphNodes, edges, view, resetKey, selectedId, onSelect }: SpatialSceneProps) {
+function SceneContents({ clusters, graphNodes, edges, view, selectedId, onSelect }: SpatialSceneProps) {
   const nodes = useMemo(() => {
     if (view === "enterprise") {
       return layoutRing(
@@ -133,8 +126,8 @@ function SceneContents({ clusters, graphNodes, edges, view, resetKey, selectedId
         return <Line key={`${edge.source}:${edge.target}`} points={[source.position, target.position]} color={active ? "#f0b428" : "#3d5588"} lineWidth={active ? 1.7 : 0.65} transparent opacity={active ? 0.96 : 0.32} />;
       })}
       {nodes.map(node => <SpatialNode key={node.id} node={node} selected={node.id === selectedId} onSelect={() => onSelect(node.id)} />)}
-      <CameraRig view={view} resetKey={resetKey} />
-      <FlyControls movementSpeed={3.2} rollSpeed={0.22} dragToLook autoForward={false} />
+      <CameraRig view={view} />
+      <OrbitControls enablePan={false} minDistance={7} maxDistance={23} autoRotate={view === "enterprise" && !selectedId} autoRotateSpeed={0.17} />
     </>
   );
 }
