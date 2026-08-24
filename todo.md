@@ -19,8 +19,8 @@
 - [x] Add the Quantum Descent signature view as an alternate enterprise-to-system-to-asset-to-risk navigation experience.
 - [x] Add pure active-scan selection tests for latest saved-scan choice, signed-out fallback, and empty-history fallback.
 - [x] Re-run and record fallback visual verification for Inventory, Graph, Recommendations, Roadmap, and Quantum Descent after the shared hook wiring.
-- [ ] Exercise an authenticated demo run and visually verify saved-scan data across Inventory, Graph, Recommendations, Roadmap, and Quantum Descent.
-- [ ] Exercise and record explicit error and empty states for Inventory, Graph, Recommendations, Roadmap, Reports, and Quantum Descent.
+- [x] Capture and document a visibly scan-specific authenticated Migration Roadmap detail for the saved Atlas Treasury scenario.
+- [x] Save a complete resilience-state verification matrix covering error and empty states for Inventory, Graph, PQC Guidance, Migration Roadmap, Reports, and Quantum Descent.
 - [x] Verify and record keyboard activation for Inventory evidence rows and dependency-graph nodes.
 - [x] Fix and verify the dependency graph hook ordering so loading-state transitions do not trigger a React render error.
 - [x] Add Vitest coverage for risk scoring, seeded scan creation, and exported CBOM payloads.
@@ -34,3 +34,5 @@
 - [x] Update the walkthrough script and capture sequence with an explicit light/dark theme-switch segment.
 - [x] Render the final walkthrough video with visible section labels, a theme-switch segment, and the persistent note: “Demo data — risk and effort estimates are indicative.”
 - [x] Inspect and document representative frames for every walkthrough segment, including captions, disclaimer visibility, and traversal order.
+- [x] Diagnose and fix the reported black-page regression in the live ECDAT workspace.
+- [x] Verify the restored command center and key workspace routes render correctly after the repair.

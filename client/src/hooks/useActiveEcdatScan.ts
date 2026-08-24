@@ -19,6 +19,9 @@ type ActiveScanView = {
 
 export function useActiveEcdatScan() {
   const { isAuthenticated } = useAuth();
+  const qaState = typeof window !== "undefined" && import.meta.env.DEV
+    ? new URLSearchParams(window.location.search).get("qaState")
+    : null;
   const scans = trpc.ecdat.scans.useQuery(undefined, { enabled: isAuthenticated });
   const scanKey = selectLatestScanKey(scans.data, isAuthenticated);
   const detail = trpc.ecdat.detail.useQuery({ scanKey: scanKey ?? "pending" }, { enabled: Boolean(scanKey) });
@@ -38,12 +41,14 @@ export function useActiveEcdatScan() {
   } : undefined;
   const fallback: ActiveScanView | undefined = preview.data ? { ...preview.data, assumptions: [] } : undefined;
   const active = chooseActiveSource({ isAuthenticated, saved, fallback });
+  const forceEmpty = qaState === "empty";
+  const forceError = qaState === "error";
   return {
     scanKey,
     isAuthenticated,
     usingSavedScan: Boolean(isAuthenticated && saved),
-    isLoading: scans.isLoading || detail.isLoading || preview.isLoading,
-    hasError: Boolean(scans.error || detail.error || preview.error),
+    isLoading: !forceEmpty && !forceError && (scans.isLoading || detail.isLoading || preview.isLoading),
+    hasError: forceError || Boolean(scans.error || detail.error || preview.error),
     retry: () => Promise.all([scans.refetch(), detail.refetch(), preview.refetch()]),
     displayName: active?.displayName ?? "Loading scenario",
     totalAssets: active?.totalAssets ?? 0,
@@ -51,10 +56,10 @@ export function useActiveEcdatScan() {
     quantumVulnerableCount: active?.quantumVulnerableCount ?? 0,
     hndlCount: active?.hndlCount ?? 0,
     quantumReadiness: active?.quantumReadiness ?? 0,
-    findings: active?.findings ?? [],
-    recommendations: active?.recommendations ?? [],
-    relationships: active?.relationships ?? [],
-    waves: active?.waves ?? [],
+    findings: forceEmpty ? [] : active?.findings ?? [],
+    recommendations: forceEmpty ? [] : active?.recommendations ?? [],
+    relationships: forceEmpty ? [] : active?.relationships ?? [],
+    waves: forceEmpty ? [] : active?.waves ?? [],
     assumptions: active?.assumptions ?? [],
     detail,
   };

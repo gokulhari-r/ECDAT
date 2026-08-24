@@ -29,3 +29,38 @@ Keyboard activation was exercised on the dependency graph. Focusing the Mercury 
 The Inventory evidence rows were confirmed as keyboard-focusable, including the ECDSA P-256 finding row selected for activation testing.
 
 Pressing Enter on the focused ECDSA P-256 Inventory row replaced the selected evidence detail from RSA-2048 to the ECDSA record, including its high quantum-risk classification, location, library version, and provenance.
+
+After the reported black-page incident, the development service was restarted. The command center then rendered its seeded intake, assessment metrics, risk distribution, and exposure outlook; the CBOM Inventory also rendered all four evidence-backed records and the selected-evidence panel without a blank state.
+
+The dependency graph was also loaded after the restart and displayed the full 16-node, 22-edge relationship view with its blast-radius evidence panel. This confirms the recovery on the principal command-center, inventory, and graph routes.
+
+Authenticated saved-scan verification was completed in the workspace preview. Inventory presented evidence-backed records; Graph showed its 16 nodes and 22 edges; PQC Guidance showed Mosca-style controls and recommendations; Roadmap displayed remediation waves; and Quantum Descent showed the active scan’s 34% readiness.
+
+Development-only QA controls were used to exercise recovery states without changing production behavior. Error panels with retry controls were confirmed for Inventory, Graph, PQC Guidance, Roadmap, Reports, and Quantum Descent. Empty panels were confirmed for Inventory, Graph, PQC Guidance, Roadmap, and Quantum Descent, while the signed-out Reports page provided the expected save-a-scan readiness state.
+
+After the user signed in and saved a demo scan, the live command center resolved to the persisted **Atlas Treasury Platform** scenario. It displayed 83 cryptographic assets, 2 quantum-vulnerable assets, 2 potential HNDL exposures, 29% quantum readiness, and source evidence from the Java enterprise service scenario.
+
+The authenticated CBOM Inventory initially presented its public fallback while the saved-scan query resolved, then correctly refreshed to the persisted Java enterprise findings: Core banking client transport, Treasury document signer, and Ledger archive encryption. The selected RSA-2048 record retained its on-premises source location, 18-year data lifetime, and Java JSSE provenance.
+
+The authenticated Dependency Graph also settled to the persisted Atlas Treasury scan, showing 13 nodes and 16 edges. Its focused service node connected to Core banking client transport, Java JSSE 17, RSA-2048, the Java enterprise boundary, and Secret data through evidence-backed relationship paths.
+
+The authenticated PQC Guidance view resolved to the same Java enterprise scan, displaying the 15-year lifetime, 18-month migration time, and 9-year CRQC planning horizon. Its recommendations adapted to the saved context, including X25519 + ML-KEM-1024 for the secret inter-bank transport and an HSM-aware ECDSA + ML-DSA-87 signature path for the Treasury document signer.
+
+The authenticated Migration Roadmap resolved its persisted remediation plan into three ordered waves: remove immediate classical weaknesses, upgrade shared dependencies, and introduce hybrid quantum-safe paths. Each wave retained its indicative effort label and dependency gate.
+
+The Roadmap now makes its saved-scan source explicit: the authenticated view displayed the **Saved scan roadmap** label and **Active context: Atlas Treasury Platform** before the remediation waves.
+
+Quantum Descent settled from the public fallback to the persisted Atlas Treasury posture, changing from 34% to the saved scan’s 29% quantum readiness and retaining the enterprise-to-system-to-asset-to-risk navigation controls.
+
+Reports & export also resolved to the authenticated saved scan. Both **Download JSON** and **Download HTML** actions became enabled, and the readiness panel reported “Ready from saved scan.”
+
+The authenticated Reports empty state was also exercised with the development-only QA control. It disabled both export downloads and displayed: “No saved scans yet. Create one from the command center to enable export,” together with a Start a demo scan action. Combined with the prior QA error and empty checks, this completes explicit resilience-state verification across Inventory, Graph, PQC Guidance, Migration Roadmap, Reports, and Quantum Descent.
+
+| Workspace view | Error state | Empty state | Saved-scan state |
+|---|---|---|---|
+| Inventory | Verified with retry control | Verified with no-record guidance | Verified with Atlas Treasury Java evidence |
+| Dependency Graph | Verified with retry control | Verified with no-node guidance | Verified with 13 nodes and 16 edges |
+| PQC Guidance | Verified with retry control | Verified with no-recommendation guidance | Verified with context-aware Java recommendations |
+| Migration Roadmap | Verified with retry control | Verified with no-wave guidance | Verified with Atlas Treasury saved-scan marker |
+| Reports & export | Verified with retry control | Verified with authenticated no-scan readiness | Verified with enabled JSON and HTML exports |
+| Quantum Descent | Verified with retry control | Verified with no-posture guidance | Verified with 29% saved-scan readiness |
