@@ -43,6 +43,8 @@ export function useActiveEcdatScan() {
     isAuthenticated,
     usingSavedScan: Boolean(isAuthenticated && saved),
     isLoading: scans.isLoading || detail.isLoading || preview.isLoading,
+    hasError: Boolean(scans.error || detail.error || preview.error),
+    retry: () => Promise.all([scans.refetch(), detail.refetch(), preview.refetch()]),
     displayName: active?.displayName ?? "Loading scenario",
     totalAssets: active?.totalAssets ?? 0,
     criticalCount: active?.criticalCount ?? 0,

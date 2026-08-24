@@ -5,3 +5,18 @@
 :root { --radius: 0.7rem; --background: oklch(0.13 0.025 240); --foreground: oklch(0.96 0.01 240); --card: oklch(0.16 0.03 240); --card-foreground: oklch(0.96 0.01 240); --popover: oklch(0.16 0.03 240); --popover-foreground: oklch(0.96 0.01 240); --primary: oklch(0.87 0.11 191); --primary-foreground: oklch(0.16 0.04 235); --secondary: oklch(0.22 0.035 240); --secondary-foreground: oklch(0.93 0.01 240); --muted: oklch(0.21 0.02 240); --muted-foreground: oklch(0.69 0.025 240); --accent: oklch(0.25 0.04 225); --accent-foreground: oklch(0.96 0.01 240); --destructive: oklch(0.66 0.19 20); --border: oklch(0.29 0.03 240); --input: oklch(0.24 0.03 240); --ring: oklch(0.77 0.12 190); }
 * { border-color: var(--border); } html { background: #06101c; } body { margin: 0; min-width: 320px; background: #06101c; color: #e2e8f0; font-family: "Manrope", sans-serif; } button, input { font: inherit; } button { cursor: pointer; } ::selection { background: rgba(103,232,249,.24); color: #ecfeff; }
 @media (prefers-reduced-motion: no-preference) { button,a { transition: transform 160ms cubic-bezier(.23,1,.32,1),background-color 160ms cubic-bezier(.23,1,.32,1),border-color 160ms cubic-bezier(.23,1,.32,1),color 160ms cubic-bezier(.23,1,.32,1); } button:active { transform: scale(.97); } }
+
+html:not(.dark) { background: #edf4f7; }
+html:not(.dark) body { background: #edf4f7; color: #11243a; }
+html:not(.dark) [class*="bg-[#06101c]"], html:not(.dark) [class*="bg-[#08111f]"], html:not(.dark) [class*="bg-[#091423]"], html:not(.dark) [class*="bg-[#0a1727]"] { background-color: #f8fbfc !important; }
+html:not(.dark) [class*="bg-[#06101c]/"], html:not(.dark) [class*="bg-white/[0.025]"] { background-color: rgba(231, 241, 245, .76) !important; }
+html:not(.dark) [class*="border-white/"] { border-color: rgba(25, 73, 96, .13) !important; }
+html:not(.dark) [class*="text-white"], html:not(.dark) [class*="text-slate-100"], html:not(.dark) [class*="text-slate-200"] { color: #11243a !important; }
+html:not(.dark) [class*="text-slate-300"], html:not(.dark) [class*="text-slate-400"] { color: #456175 !important; }
+html:not(.dark) [class*="text-slate-500"], html:not(.dark) [class*="text-slate-600"] { color: #6b8494 !important; }
+html:not(.dark) [class*="text-cyan-"] { color: #0b6b80 !important; }
+html:not(.dark) [class*="text-emerald-"] { color: #166a52 !important; }
+html:not(.dark) [class*="text-amber-"] { color: #8c5d05 !important; }
+html:not(.dark) [class*="text-rose-"] { color: #a33150 !important; }
+html:not(.dark) [class*="bg-cyan-300/"], html:not(.dark) [class*="bg-emerald-300/"], html:not(.dark) [class*="bg-amber-200/"] { box-shadow: inset 0 0 0 1px rgba(19, 116, 137, .08); }
+html:not(.dark) .recharts-cartesian-grid line { stroke: rgba(31, 78, 101, .16); }

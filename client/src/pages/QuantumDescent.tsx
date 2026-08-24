@@ -1,5 +1,6 @@
 import { Breadcrumb, EcdatHeader } from "@/components/EcdatHeader";
 import { useActiveEcdatScan } from "@/hooks/useActiveEcdatScan";
+import { WorkspaceState } from "@/components/WorkspaceState";
 import { ArrowDown, CircleDot, Orbit, ScanEye, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 
@@ -11,8 +12,12 @@ const stages = [
 ];
 
 export default function QuantumDescent() {
-  const { quantumReadiness, displayName, findings, hndlCount, recommendations } = useActiveEcdatScan();
+  const workspace = useActiveEcdatScan();
+  const { quantumReadiness, displayName, findings, hndlCount, recommendations } = workspace;
   const [level, setLevel] = useState(0);
+  if (workspace.hasError) return <WorkspaceState state="error" title="Quantum Descent is unavailable" description="The active scan could not be resolved for this navigation view." onRetry={() => void workspace.retry()} />;
+  if (workspace.isLoading && !findings.length) return <WorkspaceState state="loading" title="Preparing Quantum Descent" description="Resolving the active scan’s posture, evidence, and action paths." />;
+  if (!findings.length) return <WorkspaceState state="empty" title="No active scan evidence" description="Run a seeded scan to explore enterprise posture through to specific risk decisions." />;
   const active = stages[level];
   const Icon = active.icon;
   const detail = level === 0 ? `${quantumReadiness}% quantum readiness across the active scan.` : level === 1 ? displayName : level === 2 ? `${findings.length} sampled cryptographic findings with provenance.` : `${hndlCount} potential HNDL indicators and ${recommendations.length} prioritised action paths.`;

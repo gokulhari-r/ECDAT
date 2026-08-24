@@ -19,11 +19,18 @@
 - [x] Add the Quantum Descent signature view as an alternate enterprise-to-system-to-asset-to-risk navigation experience.
 - [x] Add pure active-scan selection tests for latest saved-scan choice, signed-out fallback, and empty-history fallback.
 - [x] Re-run and record fallback visual verification for Inventory, Graph, Recommendations, Roadmap, and Quantum Descent after the shared hook wiring.
-- [ ] Perform and record signed-in saved-scan visual verification for the five analytical workspace views after a demo run is persisted.
-- [ ] Add loading, error, empty, accessibility, and responsive states across core flows.
+- [ ] Exercise an authenticated demo run and visually verify saved-scan data across Inventory, Graph, Recommendations, Roadmap, and Quantum Descent.
+- [ ] Exercise and record explicit error and empty states for Inventory, Graph, Recommendations, Roadmap, Reports, and Quantum Descent.
+- [x] Verify and record keyboard activation for Inventory evidence rows and dependency-graph nodes.
+- [x] Fix and verify the dependency graph hook ordering so loading-state transitions do not trigger a React render error.
 - [x] Add Vitest coverage for risk scoring, seeded scan creation, and exported CBOM payloads.
 - [x] Run type checks and tests, verify the interface visually at desktop and mobile widths, and resolve identified issues.
 - [x] Recalculate the active saved scan’s dashboard risk and HNDL metric totals from its current Mosca-style assumptions.
 - [x] Wire the Home dashboard to the active saved scan so current Mosca assumptions update displayed critical and HNDL metrics.
 - [x] Add a dashboard finding drill-down that leads directly to the evidence detail for the selected finding.
 - [x] Add Vitest coverage for seeded scenario run persistence through the createScenarioRun workflow.
+- [x] Add a persistent, keyboard-accessible light/dark theme switch to the ECDAT navigation shell.
+- [x] Visually verify and, if necessary, refine the light-theme Inventory table, detail panel, risk badges, and evidence panel.
+- [x] Update the walkthrough script and capture sequence with an explicit light/dark theme-switch segment.
+- [x] Render the final walkthrough video with visible section labels, a theme-switch segment, and the persistent note: “Demo data — risk and effort estimates are indicative.”
+- [x] Inspect and document representative frames for every walkthrough segment, including captions, disclaimer visibility, and traversal order.
