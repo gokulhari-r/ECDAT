@@ -36,3 +36,6 @@
 - [x] Inspect and document representative frames for every walkthrough segment, including captions, disclaimer visibility, and traversal order.
 - [x] Diagnose and fix the reported black-page regression in the live ECDAT workspace.
 - [x] Verify the restored command center and key workspace routes render correctly after the repair.
+- [x] Review the new pasted ECDAT content and identify required walkthrough-script changes.
+- [x] Update, render, and review the ECDAT walkthrough video to reflect the newly supplied content.
+- [x] Add a clearly labelled v0.1 upgrade-direction segment covering Discovery, Risk Center, Quantum Readiness, and future Spatial Mode without presenting unimplemented capabilities as live features.
