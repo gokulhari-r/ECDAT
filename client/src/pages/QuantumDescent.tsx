@@ -1,9 +1,11 @@
 import { Breadcrumb, EcdatHeader } from "@/components/EcdatHeader";
-import { SpatialScene } from "@/components/SpatialScene";
+import { SpatialScene, type AttackState } from "@/components/SpatialScene";
+import { CopilotPanel } from "@/components/CopilotPanel";
 import { WorkspaceState } from "@/components/WorkspaceState";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useActiveEcdatScan } from "@/hooks/useActiveEcdatScan";
+import type { AttackResult } from "@/lib/attackTraversal";
 import {
   buildBlastRadius,
   buildSpatialClusters,
@@ -15,7 +17,7 @@ import {
   searchSpatialEntities,
   type SpatialFinding,
 } from "@/lib/spatialProjection";
-import { ArrowLeft, ChevronRight, CircleDot, Crosshair, ExternalLink, Focus, Grid3X3, History, Network, Orbit, Search, ShieldAlert, Sparkles, Waypoints, X } from "lucide-react";
+import { ArrowLeft, BotMessageSquare, ChevronRight, CircleDot, Crosshair, ExternalLink, Focus, Grid3X3, History, Network, Orbit, RotateCcw, Search, ShieldAlert, Sparkles, Waypoints, Zap, X } from "lucide-react";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useLocation } from "wouter";
 
@@ -58,7 +60,7 @@ function findingNodeId(finding: SpatialFinding, graphNodes: ReturnType<typeof bu
 export default function QuantumDescent() {
   const workspace = useActiveEcdatScan();
   const [, setLocation] = useLocation();
-  const { quantumReadiness, displayName, findings, hndlCount, recommendations, relationships, waves, totalAssets, criticalCount, quantumVulnerableCount, usingSavedScan } = workspace;
+  const { quantumReadiness, displayName, findings, hndlCount, recommendations, relationships, waves, totalAssets, criticalCount, quantumVulnerableCount, usingSavedScan, scanKey } = workspace;
   const [normalLevel, setNormalLevel] = useState(0);
   const [isSpatialMode, setIsSpatialMode] = useState(() => new URLSearchParams(window.location.search).get("spatial") === "1");
   const [view, setView] = useState<SpatialView>("enterprise");
@@ -67,6 +69,9 @@ export default function QuantumDescent() {
   const [selectedFindingKey, setSelectedFindingKey] = useState<string | undefined>();
   const [selectedSceneId, setSelectedSceneId] = useState<string | undefined>();
   const [query, setQuery] = useState("");
+  const [attackState, setAttackState] = useState<AttackState>({ active: false, sourceNodeId: null });
+  const [attackResult, setAttackResult] = useState<AttackResult | null>(null);
+  const [showCopilot, setShowCopilot] = useState(false);
   const webglCapability = useWebglCapability();
 
   const clusters = useMemo(() => buildSpatialClusters(findings), [findings]);
@@ -94,6 +99,8 @@ export default function QuantumDescent() {
   const fallbackEntities = useMemo(() => view === "enterprise"
     ? clusters.map(cluster => ({ id: cluster.id, label: cluster.label, meta: `${cluster.assetCount} assets · ${cluster.vulnerableCount} quantum-vulnerable`, weight: cluster.riskWeight }))
     : sceneGraphNodes.map(node => ({ id: node.id, label: node.label, meta: `${node.kind} · ${node.findingKeys.length || 1} observed evidence link${node.findingKeys.length === 1 ? "" : "s"}`, weight: node.riskWeight })), [view, clusters, sceneGraphNodes]);
+  const attackSourceId = selectedSceneId ?? selectedFindingNode;
+  const clearAttack = () => { setAttackState({ active: false, sourceNodeId: null }); setAttackResult(null); };
 
   if (workspace.hasError) return <WorkspaceState state="error" title="Quantum Descent is unavailable" description="The active scan could not be resolved for this navigation view." onRetry={() => void workspace.retry()} />;
   if (workspace.isLoading && !findings.length) return <WorkspaceState state="loading" title="Preparing Quantum Descent" description="Resolving the active scan’s posture, evidence, and action paths." />;
@@ -126,6 +133,7 @@ export default function QuantumDescent() {
   };
 
   const selectSceneEntity = (id: string) => {
+    if (attackState.active) clearAttack();
     const cluster = clusters.find(item => item.id === id);
     if (cluster) {
       setSelectedClusterId(cluster.id);
@@ -180,7 +188,7 @@ export default function QuantumDescent() {
           <button type="button" onClick={returnToNormalMode} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-medium text-slate-300 hover:border-cyan-200/30 hover:text-cyan-100"><ArrowLeft className="h-3.5 w-3.5" />Normal mode</button>
           <div className="min-w-0"><p className="truncate font-display text-sm font-semibold tracking-tight text-white">Spatial Mode <span className="text-cyan-200/65">/ {displayName}</span></p><p className="hidden text-[10px] uppercase tracking-[0.16em] text-slate-500 sm:block">{usingSavedScan ? "Saved active scan" : "Seeded preview data"} · evidence-backed exploration</p></div>
         </div>
-        <div className="flex items-center gap-2"><Badge variant="outline" className="hidden border-cyan-200/15 bg-cyan-300/[0.055] text-cyan-100 md:inline-flex">{webglCapability === "webgl" ? "WebGL spatial scene" : "Accessible 2D scene"}</Badge><button type="button" onClick={exitSpatialMode} className="inline-flex items-center gap-2 rounded-xl border border-rose-200/20 bg-rose-300/[0.07] px-3 py-2 text-xs font-medium text-rose-100 hover:bg-rose-300/[0.12]"><X className="h-3.5 w-3.5" />Exit to inventory</button></div>
+        <div className="flex flex-wrap items-center justify-end gap-2"><Badge variant="outline" className="hidden border-cyan-200/15 bg-cyan-300/[0.055] text-cyan-100 md:inline-flex">{webglCapability === "webgl" ? "WebGL spatial scene" : "Accessible 2D scene"}</Badge>{webglCapability === "webgl" ? <button type="button" disabled={!attackSourceId || attackState.active} onClick={() => { if (!attackSourceId) return; setAttackResult(null); setView("artefact"); setLens("dependency"); setAttackState({ active: true, sourceNodeId: attackSourceId }); }} className="inline-flex items-center gap-2 rounded-xl border border-rose-200/25 bg-rose-300/[0.08] px-3 py-2 text-xs font-medium text-rose-100 hover:bg-rose-300/[0.14] disabled:cursor-not-allowed disabled:opacity-40"><Zap className="h-3.5 w-3.5" />{attackState.active ? "Simulating path…" : "Simulate path"}</button> : null}<button type="button" disabled={!scanKey} onClick={() => setShowCopilot(current => !current)} title={scanKey ? "Open AI Crypto Analyst" : "Save a scan to enable the protected AI Crypto Analyst"} className="inline-flex items-center gap-2 rounded-xl border border-violet-200/20 bg-violet-300/[0.07] px-3 py-2 text-xs font-medium text-violet-100 hover:bg-violet-300/[0.12] disabled:cursor-not-allowed disabled:opacity-40"><BotMessageSquare className="h-3.5 w-3.5" />AI Analyst</button><button type="button" onClick={exitSpatialMode} className="inline-flex items-center gap-2 rounded-xl border border-rose-200/20 bg-rose-300/[0.07] px-3 py-2 text-xs font-medium text-rose-100 hover:bg-rose-300/[0.12]"><X className="h-3.5 w-3.5" />Exit to inventory</button></div>
       </header>
       <div className="spatial-mode-toolbar">
         <nav className="flex min-w-0 items-center gap-1 overflow-x-auto" aria-label="Spatial breadcrumb"><button type="button" onClick={() => { setView("enterprise"); setLens("enterprise"); }} className="spatial-crumb">Enterprise</button>{view !== "enterprise" ? <><ChevronRight className="h-3 w-3 shrink-0 text-slate-700" /><button type="button" onClick={() => setView("domain")} className="spatial-crumb">{selectedCluster?.label ?? "Domain"}</button></> : null}{["ecosystem", "artefact"].includes(view) ? <><ChevronRight className="h-3 w-3 shrink-0 text-slate-700" /><button type="button" onClick={() => setView("ecosystem")} className="spatial-crumb">{displayName}</button></> : null}{view === "artefact" && selectedFinding ? <><ChevronRight className="h-3 w-3 shrink-0 text-slate-700" /><button type="button" onClick={() => setView("artefact")} className="truncate text-cyan-100">{selectedFinding.algorithm}</button></> : null}</nav>
@@ -188,8 +196,8 @@ export default function QuantumDescent() {
       </div>
       <main className="spatial-mode-main">
         <aside className="spatial-mode-rail"><p className="px-1 text-[10px] font-semibold uppercase tracking-[0.17em] text-slate-600">Explore</p><div className="mt-2 space-y-1">{spatialLenses.map(item => { const Icon = item.icon; return <button type="button" key={item.id} onClick={() => { setLens(item.id); if (item.id === "risk") focusHighestRisk(); if (item.id === "dependency" && selectedFinding) setView("artefact"); }} className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs ${lens === item.id ? "bg-cyan-300/[0.11] text-cyan-100" : "text-slate-500 hover:bg-white/[0.035] hover:text-slate-200"}`}><Icon className="h-3.5 w-3.5" />{item.label}</button>; })}</div><div className="mt-5 border-t border-white/[0.07] pt-4"><button type="button" onClick={focusHighestRisk} className="flex w-full items-center gap-2 rounded-xl border border-rose-200/15 bg-rose-300/[0.055] px-3 py-2 text-left text-xs font-medium text-rose-100 hover:bg-rose-300/[0.1]"><Focus className="h-3.5 w-3.5" />Focus highest risk</button><button type="button" onClick={() => { setView("enterprise"); setLens("enterprise"); setSelectedClusterId(undefined); setSelectedSceneId(undefined); }} className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs text-slate-500 hover:bg-white/[0.035] hover:text-slate-200"><Orbit className="h-3.5 w-3.5" />Reset view</button></div><div className="mt-auto rounded-xl border border-white/[0.07] bg-white/[0.025] p-3"><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Active scan</p><p className="mt-1 text-sm font-medium text-slate-200">{totalAssets} assets</p><p className="mt-1 text-[11px] leading-4 text-slate-500">{criticalCount} critical · {quantumVulnerableCount} quantum-vulnerable · {quantumReadiness}% readiness</p></div></aside>
-        <section className="spatial-stage"><div className="absolute left-5 top-5 z-10 rounded-2xl border border-white/10 bg-[#08111f]/85 p-3"><p className="text-[10px] font-semibold uppercase tracking-[0.17em] text-cyan-200/60">{lens} lens / {view} level</p><p className="mt-1 max-w-[260px] text-xs leading-5 text-slate-400">{view === "enterprise" ? "Clusters are calculated from the active scan and limit detail until you descend." : "Entities and paths represent observed scan relationships at the selected level."}</p></div><div className="absolute bottom-4 left-5 z-10 flex gap-2">{webglCapability === "webgl" ? <><span className="rounded-full border border-white/10 bg-[#08111f]/85 px-2.5 py-1 text-[10px] text-slate-400">Drag to orbit</span><span className="rounded-full border border-white/10 bg-[#08111f]/85 px-2.5 py-1 text-[10px] text-slate-400">Scroll to zoom</span></> : <span className="rounded-full border border-white/10 bg-[#08111f]/85 px-2.5 py-1 text-[10px] text-slate-400">Select an observed entity to descend</span>}</div>{webglCapability === "webgl" ? <SpatialScene clusters={clusters} graphNodes={sceneGraphNodes} edges={sceneEdges} view={view} selectedId={selectedSceneId ?? selectedFindingNode} onSelect={selectSceneEntity} /> : <SpatialFallback entities={fallbackEntities} selectedId={selectedSceneId ?? selectedFindingNode} onSelect={selectSceneEntity} />}</section>
-        <aside className="spatial-mode-detail" aria-live="polite">{selectedFinding ? <SpatialDetail finding={selectedFinding} recommendation={recommendation} waves={migrationWaves} lens={lens} timeline={timeline} blastRadius={blastRadius.summary} onShowBlastRadius={() => { setLens("dependency"); setView("artefact"); setSelectedSceneId(selectedFindingNode); }} /> : <div className="grid h-full place-items-center p-6 text-center text-sm text-slate-500">Select an observed cluster or entity to open its analysis panel.</div>}</aside>
+        <section className="spatial-stage"><div className="absolute left-5 top-5 z-10 rounded-2xl border border-white/10 bg-[#08111f]/85 p-3"><p className="text-[10px] font-semibold uppercase tracking-[0.17em] text-cyan-200/60">{lens} lens / {view} level</p><p className="mt-1 max-w-[280px] text-xs leading-5 text-slate-400">{attackState.active ? "Illustrative traversal is moving only across the visible observed dependency paths." : view === "enterprise" ? "Clusters are calculated from the active scan and limit detail until you descend." : "Entities and paths represent observed scan relationships at the selected level."}</p></div><div className="absolute bottom-4 left-5 z-10 flex flex-wrap gap-2">{webglCapability === "webgl" ? <><span className="rounded-full border border-white/10 bg-[#08111f]/85 px-2.5 py-1 text-[10px] text-slate-400">Drag to orbit</span><span className="rounded-full border border-white/10 bg-[#08111f]/85 px-2.5 py-1 text-[10px] text-slate-400">Scroll to zoom</span>{attackResult ? <button type="button" onClick={clearAttack} className="inline-flex items-center gap-1 rounded-full border border-rose-200/20 bg-rose-300/[0.08] px-2.5 py-1 text-[10px] text-rose-100"><RotateCcw className="h-3 w-3" />Clear simulation</button> : null}</> : <span className="rounded-full border border-white/10 bg-[#08111f]/85 px-2.5 py-1 text-[10px] text-slate-400">Select an observed entity to descend</span>}</div>{webglCapability === "webgl" ? <SpatialScene clusters={clusters} graphNodes={sceneGraphNodes} edges={sceneEdges} view={view} selectedId={selectedSceneId ?? selectedFindingNode} onSelect={selectSceneEntity} attackState={attackState} onAttackComplete={result => { setAttackResult(result); setAttackState({ active: false, sourceNodeId: null }); }} /> : <SpatialFallback entities={fallbackEntities} selectedId={selectedSceneId ?? selectedFindingNode} onSelect={selectSceneEntity} />}</section>
+        <aside className="spatial-mode-detail" aria-live="polite">{attackResult ? <AttackSummary result={attackResult} nodes={sceneGraphNodes} /> : null}{selectedFinding ? <SpatialDetail finding={selectedFinding} recommendation={recommendation} waves={migrationWaves} lens={lens} timeline={timeline} blastRadius={blastRadius.summary} onShowBlastRadius={() => { setLens("dependency"); setView("artefact"); setSelectedSceneId(selectedFindingNode); }} /> : <div className="grid h-full place-items-center p-6 text-center text-sm text-slate-500">Select an observed cluster or entity to open its analysis panel.</div>}{showCopilot && scanKey ? <CopilotPanel scanKey={scanKey} onFocusFinding={findingKey => { const finding = findings.find(item => item.findingKey === findingKey); setSelectedFindingKey(findingKey); setSelectedSceneId(finding ? findingNodeId(finding, graphNodes) : undefined); setLens("risk"); setView("artefact"); }} /> : null}</aside>
       </main>
     </div>;
   }
@@ -203,6 +211,11 @@ export default function QuantumDescent() {
 
 function SpatialFallback({ entities, selectedId, onSelect }: { entities: Array<{ id: string; label: string; meta: string; weight: number }>; selectedId?: string; onSelect: (id: string) => void }) {
   return <div className="spatial-fallback-scene" role="list" aria-label="Accessible two-dimensional spatial environment">{entities.map((entity, index) => <button type="button" role="listitem" key={entity.id} onClick={() => onSelect(entity.id)} className={`spatial-fallback-node spatial-fallback-node--${Math.min(entity.weight, 8)} ${selectedId === entity.id ? "spatial-fallback-node--selected" : ""}`} style={{ "--node-index": index } as CSSProperties}><span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-200/65">observed entity</span><strong>{entity.label}</strong><small>{entity.meta}</small></button>)}<div className="spatial-fallback-axis" /></div>;
+}
+
+function AttackSummary({ result, nodes }: { result: AttackResult; nodes: ReturnType<typeof buildSpatialGraph> }) {
+  const vulnerableNodes = nodes.filter(node => result.hitNodes.includes(node.id) && node.riskWeight >= 5).length;
+  return <section className="border-b border-rose-200/15 bg-rose-300/[0.045] p-5"><p className="text-[10px] font-semibold uppercase tracking-[0.17em] text-rose-200/75">Illustrative path simulation</p><h2 className="mt-2 font-display text-lg font-semibold text-rose-50">Observed-path traversal complete</h2><div className="mt-4 grid grid-cols-2 gap-2"><Metric label="Entities reached" value={String(result.hitNodes.length)} /><Metric label="Edges traversed" value={String(result.totalSteps)} /><Metric label="Higher-risk nodes" value={String(vulnerableNodes)} /><Metric label="Path depth" value={String(result.totalSteps)} /></div><p className="mt-4 text-[11px] leading-5 text-rose-100/70">This is an illustrative breadth-first traversal of the currently visible observed dependency graph. It is not an exploit demonstration, breach prediction, production reachability claim, or quantum-computing estimate.</p></section>;
 }
 
 function SpatialDetail({ finding, recommendation, waves, lens, timeline, blastRadius, onShowBlastRadius }: { finding: SpatialFinding; recommendation: ReturnType<typeof recommendationForFinding>; waves: ReturnType<typeof relatedWaves>; lens: SpatialLens; timeline: ReturnType<typeof buildSpatialTimeline> | undefined; blastRadius: ReturnType<typeof buildBlastRadius>["summary"]; onShowBlastRadius: () => void }) {

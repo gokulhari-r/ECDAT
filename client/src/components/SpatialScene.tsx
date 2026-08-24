@@ -1,8 +1,10 @@
 import { Html, Line, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Vector3 } from "three";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { SpatialCluster, SpatialGraphNode } from "@/lib/spatialProjection";
+import { AttackSimulation } from "@/components/AttackSimulation";
+import { attackEdgeKey, buildAttackPath, type AttackResult } from "@/lib/attackTraversal";
 
 export type SceneNode = {
   id: string;
@@ -13,10 +15,12 @@ export type SceneNode = {
   meta: string;
 };
 
-type SceneEdge = {
+export type SceneEdge = {
   source: string;
   target: string;
 };
+
+export type AttackState = { active: boolean; sourceNodeId: string | null };
 
 type SpatialSceneProps = {
   clusters: SpatialCluster[];
@@ -25,6 +29,8 @@ type SpatialSceneProps = {
   view: "enterprise" | "domain" | "ecosystem" | "artefact";
   selectedId?: string;
   onSelect: (id: string) => void;
+  attackState?: AttackState;
+  onAttackComplete?: (result: AttackResult) => void;
 };
 
 const cameraPositions: Record<SpatialSceneProps["view"], [number, number, number]> = {
@@ -69,7 +75,7 @@ function CameraRig({ view }: { view: SpatialSceneProps["view"] }) {
   return null;
 }
 
-function SpatialNode({ node, selected, onSelect }: { node: SceneNode; selected: boolean; onSelect: () => void }) {
+function SpatialNode({ node, selected, underAttack, onSelect }: { node: SceneNode; selected: boolean; underAttack: boolean; onSelect: () => void }) {
   const radius = 0.46 + Math.min(node.riskWeight, 8) * 0.055;
   const color = nodeColor(node.riskWeight);
   return (
@@ -82,6 +88,7 @@ function SpatialNode({ node, selected, onSelect }: { node: SceneNode; selected: 
         <ringGeometry args={[radius * 1.32, radius * 1.43, 48]} />
         <meshBasicMaterial color="#ffcb6b" transparent opacity={0.86} side={2} />
       </mesh> : null}
+      {underAttack ? <mesh rotation={[0, 0, Math.PI / 4]}><ringGeometry args={[radius * 1.58, radius * 1.68, 48]} /><meshBasicMaterial color="#ff4d6d" transparent opacity={0.78} side={2} /></mesh> : null}
       <Html center>
         <button type="button" onClick={onSelect} className={`spatial-node-label ${selected ? "spatial-node-label--selected" : ""}`} aria-label={`Focus ${node.label}`}>
           <span>{node.kind}</span>
@@ -93,7 +100,7 @@ function SpatialNode({ node, selected, onSelect }: { node: SceneNode; selected: 
   );
 }
 
-function SceneContents({ clusters, graphNodes, edges, view, selectedId, onSelect }: SpatialSceneProps) {
+function SceneContents({ clusters, graphNodes, edges, view, selectedId, onSelect, attackState, onAttackComplete }: SpatialSceneProps) {
   const nodes = useMemo(() => {
     if (view === "enterprise") {
       return layoutRing(
@@ -105,6 +112,10 @@ function SceneContents({ clusters, graphNodes, edges, view, selectedId, onSelect
   }, [clusters, graphNodes, view]);
   const nodeMap = useMemo(() => new Map(nodes.map(node => [node.id, node])), [nodes]);
   const visibleEdges = useMemo(() => edges.filter(edge => nodeMap.has(edge.source) && nodeMap.has(edge.target)).slice(0, 30), [edges, nodeMap]);
+  const attackSteps = useMemo(() => attackState?.active && attackState.sourceNodeId ? buildAttackPath(attackState.sourceNodeId, visibleEdges, nodeMap) : [], [attackState?.active, attackState?.sourceNodeId, visibleEdges, nodeMap]);
+  const [attackedNodes, setAttackedNodes] = useState<string[]>([]);
+  const [attackedEdges, setAttackedEdges] = useState<string[]>([]);
+  useEffect(() => { setAttackedNodes(attackState?.active && attackState.sourceNodeId ? [attackState.sourceNodeId] : []); setAttackedEdges([]); }, [attackState?.active, attackState?.sourceNodeId]);
 
   return (
     <>
@@ -123,9 +134,11 @@ function SceneContents({ clusters, graphNodes, edges, view, selectedId, onSelect
         const source = nodeMap.get(edge.source)!;
         const target = nodeMap.get(edge.target)!;
         const active = selectedId === edge.source || selectedId === edge.target;
-        return <Line key={`${edge.source}:${edge.target}`} points={[source.position, target.position]} color={active ? "#f0b428" : "#3d5588"} lineWidth={active ? 1.7 : 0.65} transparent opacity={active ? 0.96 : 0.32} />;
+        const underAttack = attackedEdges.includes(attackEdgeKey(edge.source, edge.target));
+        return <Line key={`${edge.source}:${edge.target}`} points={[source.position, target.position]} color={underAttack ? "#ff4d6d" : active ? "#f0b428" : "#3d5588"} lineWidth={underAttack ? 2.3 : active ? 1.7 : 0.65} transparent opacity={underAttack ? 1 : active ? 0.96 : 0.32} />;
       })}
-      {nodes.map(node => <SpatialNode key={node.id} node={node} selected={node.id === selectedId} onSelect={() => onSelect(node.id)} />)}
+      {nodes.map(node => <SpatialNode key={node.id} node={node} selected={node.id === selectedId} underAttack={attackedNodes.includes(node.id)} onSelect={() => onSelect(node.id)} />)}
+      {attackState?.active && attackState.sourceNodeId ? <AttackSimulation key={`${attackState.sourceNodeId}-${attackSteps.length}`} sourceId={attackState.sourceNodeId} steps={attackSteps} onStepHit={(nodeId, fromId) => { setAttackedNodes(previous => previous.includes(nodeId) ? previous : [...previous, nodeId]); setAttackedEdges(previous => [...previous, attackEdgeKey(fromId, nodeId)]); }} onComplete={result => onAttackComplete?.(result)} /> : null}
       <CameraRig view={view} />
       <OrbitControls enablePan={false} minDistance={7} maxDistance={23} autoRotate={view === "enterprise" && !selectedId} autoRotateSpeed={0.17} />
     </>

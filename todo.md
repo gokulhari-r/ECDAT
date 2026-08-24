@@ -67,3 +67,8 @@
 - [x] Exercise shared loading, error, and empty guidance after the WorkspaceState enhancement, then rerun complete regression validation before checkpointing.
 - [x] Exercise and document an upgraded route’s enhanced WorkspaceState loading guidance before checkpointing the polish phase.
 - [x] Add or update automated coverage and complete phased regression, visual verification, documentation, and checkpointing.
+- [x] Map the supplied quantum-attack simulation and AI copilot plan to the existing active-scan, Spatial Mode, and privacy/security contracts.
+- [x] Implement an explicitly illustrative, evidence-derived quantum attack propagation simulation with controlled traversal, hit feedback, reset, and summary safeguards.
+- [x] Implement a protected AI Crypto Analyst tRPC procedure that uses current saved-scan evidence, constrained prompts, managed server-side credentials, and no local secrets.
+- [x] Add an accessible Spatial Mode copilot panel and integrate attack simulation controls, results, and any deterministic node-highlighting behavior.
+- [x] Add focused automated tests and complete desktop/mobile visual verification, documentation, and checkpointing for the intelligence upgrade.

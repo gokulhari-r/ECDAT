@@ -4,8 +4,10 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { createScenarioRun, getExportPayload, getScanDetail, listUserScans, saveMoscaAssumptions } from "./ecdat";
+import { buildCopilotOutputSchema, buildCryptoAnalystPrompt, parseCopilotReply } from "./ecdatCopilot";
 import { buildSeededPreviewExport } from "./ecdatPreviewExport";
 import { getSeededScenario, scenarioCatalog, scenarioIds } from "./ecdatSeed";
+import { invokeLLM } from "./_core/llm";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -53,6 +55,26 @@ export const appRouter = router({
     export: protectedProcedure
       .input(z.object({ scanKey: z.string().min(1) }))
       .query(({ ctx, input }) => getExportPayload(ctx.user.id, input.scanKey)),
+    chat: protectedProcedure
+      .input(z.object({
+        scanKey: z.string().min(1),
+        messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().min(1).max(1400) })).min(1).max(8),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const detail = await getScanDetail(ctx.user.id, input.scanKey);
+        const findingKeys = detail.findings.map(finding => finding.findingKey);
+        const response = await invokeLLM({
+          model: "gpt-5-mini",
+          maxCompletionTokens: 900,
+          outputSchema: buildCopilotOutputSchema(findingKeys),
+          messages: [
+            { role: "system", content: buildCryptoAnalystPrompt(detail) },
+            ...input.messages.map(message => ({ role: message.role, content: message.content })),
+          ],
+        });
+        const raw = response.choices[0]?.message.content;
+        return parseCopilotReply(typeof raw === "string" ? raw : "", findingKeys);
+      }),
   }),
 });
 
