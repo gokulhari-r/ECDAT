@@ -89,7 +89,7 @@ export const ecdatFindings = mysqlTable(
     provenance: text("provenance").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
-  table => [unique("ecdatFindings_findingKey_unique").on(table.findingKey)]
+  table => [unique("ecdatFindings_scanKey_findingKey_unique").on(table.scanKey, table.findingKey)]
 );
 
 export const ecdatAssumptions = mysqlTable("ecdatAssumptions", {

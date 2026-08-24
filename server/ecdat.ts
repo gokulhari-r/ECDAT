@@ -11,7 +11,7 @@ import { getDb } from "./db";
 import { buildCycloneDxOrientedCbom, buildExecutiveHtml } from "./ecdatExport";
 import { buildBlastRadius, deriveRemediationWaves } from "./ecdatGraph";
 import { evaluateFindingRisk, summarizeEvaluatedFindings } from "./ecdatRisk";
-import { getSeededScenario, type ScenarioId } from "./ecdatSeed";
+import { getSeededScenario, type ScenarioId, type SeedScenario } from "./ecdatSeed";
 import { nanoid } from "nanoid";
 
 function requiredDb() {
@@ -21,42 +21,47 @@ function requiredDb() {
   });
 }
 
+export function buildScenarioPersistenceRows(scenario: SeedScenario, scanKey: string) {
+  return {
+    findings: scenario.findings.map(finding => ({ ...finding, scanKey })),
+    recommendations: scenario.recommendations.map(recommendation => ({ ...recommendation, scanKey, status: "open" as const })),
+    relationships: scenario.relationships.map(relationship => ({ ...relationship, scanKey })),
+    waves: scenario.waves.map(wave => ({ ...wave, scanKey })),
+    assumptions: [
+      { scanKey, assumptionKey: "data-lifetime", label: "Representative data lifetime", value: "15", unit: "years", source: "Seeded scenario context", confidence: 76, userConfirmed: false },
+      { scanKey, assumptionKey: "migration-time", label: "Representative migration time", value: "18", unit: "months", source: "Dependency-aware estimate", confidence: 68, userConfirmed: false },
+      { scanKey, assumptionKey: "crqc-horizon", label: "Planning horizon to CRQC", value: "9", unit: "years", source: "Configurable planning assumption", confidence: 52, userConfirmed: false },
+    ],
+  };
+}
+
 export async function createScenarioRun(userId: number, scenarioId: ScenarioId, repositoryUrl?: string) {
   const db = await requiredDb();
   const scenario = getSeededScenario(scenarioId);
   const scanKey = `scan_${nanoid(10)}`;
+  const rows = buildScenarioPersistenceRows(scenario, scanKey);
 
-  await db.insert(ecdatScans).values({
-    scanKey,
-    userId,
-    displayName: scenario.displayName,
-    repositoryUrl: repositoryUrl?.trim() || scenario.repositoryPlaceholder,
-    scenario: scenario.id,
-    status: "completed",
-    totalAssets: scenario.totalAssets,
-    criticalCount: scenario.criticalCount,
-    quantumVulnerableCount: scenario.quantumVulnerableCount,
-    hndlCount: scenario.hndlCount,
-    quantumReadiness: scenario.quantumReadiness,
+  await db.transaction(async tx => {
+    await tx.insert(ecdatScans).values({
+      scanKey,
+      userId,
+      displayName: scenario.displayName,
+      repositoryUrl: repositoryUrl?.trim() || scenario.repositoryPlaceholder,
+      scenario: scenario.id,
+      status: "completed",
+      totalAssets: scenario.totalAssets,
+      criticalCount: scenario.criticalCount,
+      quantumVulnerableCount: scenario.quantumVulnerableCount,
+      hndlCount: scenario.hndlCount,
+      quantumReadiness: scenario.quantumReadiness,
+    });
+
+    await tx.insert(ecdatFindings).values(rows.findings);
+    await tx.insert(ecdatRecommendations).values(rows.recommendations);
+    await tx.insert(ecdatRelationships).values(rows.relationships);
+    await tx.insert(ecdatMigrationWaves).values(rows.waves);
+    await tx.insert(ecdatAssumptions).values(rows.assumptions);
   });
-
-  await db.insert(ecdatFindings).values(
-    scenario.findings.map(finding => ({ ...finding, scanKey }))
-  );
-  await db.insert(ecdatRecommendations).values(
-    scenario.recommendations.map(recommendation => ({ ...recommendation, scanKey, status: "open" as const }))
-  );
-  await db.insert(ecdatRelationships).values(
-    scenario.relationships.map(relationship => ({ ...relationship, scanKey }))
-  );
-  await db.insert(ecdatMigrationWaves).values(
-    scenario.waves.map(wave => ({ ...wave, scanKey }))
-  );
-  await db.insert(ecdatAssumptions).values([
-    { scanKey, assumptionKey: "data-lifetime", label: "Representative data lifetime", value: "15", unit: "years", source: "Seeded scenario context", confidence: 76, userConfirmed: false },
-    { scanKey, assumptionKey: "migration-time", label: "Representative migration time", value: "18", unit: "months", source: "Dependency-aware estimate", confidence: 68, userConfirmed: false },
-    { scanKey, assumptionKey: "crqc-horizon", label: "Planning horizon to CRQC", value: "9", unit: "years", source: "Configurable planning assumption", confidence: 52, userConfirmed: false },
-  ]);
 
   return getScanDetail(userId, scanKey);
 }

@@ -64,3 +64,11 @@ The authenticated Reports empty state was also exercised with the development-on
 | Migration Roadmap | Verified with retry control | Verified with no-wave guidance | Verified with Atlas Treasury saved-scan marker |
 | Reports & export | Verified with retry control | Verified with authenticated no-scan readiness | Verified with enabled JSON and HTML exports |
 | Quantum Descent | Verified with retry control | Verified with no-posture guidance | Verified with 29% saved-scan readiness |
+
+The repaired persistence flow was exercised with the Java enterprise scenario selected in an authenticated session. The scan action entered its explicit “Saving scan…” state without reproducing the previous immediate findings-insert error.
+
+The repaired Java enterprise scan completed successfully and navigated to its persisted CBOM Inventory, which displayed the three expected findings and the `java-core-rsa` evidence record. A database check confirmed that `java-core-rsa` now exists in **two distinct scan keys**, proving the revised scan-scoped unique constraint permits repeated seeded scenario runs while preserving each run’s findings.
+
+The regression suite now includes a repeated-run payload test for the same seeded `findingKey` under two different `scanKey` values, plus a failure-path test that confirms a transactional findings-insert error prevents the post-insert detail lookup. TypeScript validation and all **14** project tests pass.
+
+The failure-path test now uses a stateful transaction simulation: it stages the initial scan row, forces the findings insert to fail, and proves that neither the staged scan nor related detail payloads are committed after the transaction rejects.
