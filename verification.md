@@ -110,3 +110,15 @@ The Reports workspace now supports both authenticated saved-scan exports and una
 Reports clearly identifies whether the source is a saved active scan or a seeded demo preview, provides generation feedback, exposes CBOM JSON and executive HTML downloads in either mode, and includes a read-only sample of exported findings before download. The saved-scan flow was visually verified with the Mercury Payments scan, including its evidence cards. TypeScript validation passed, and the full suite now passes with **22 tests** across six files.
 
 The public fallback was rechecked across Command Center, CBOM Inventory, Dependency Graph, PQC Guidance, Migration Roadmap, Reports, and Quantum Descent. All routes rendered their active seeded evidence model without a route-specific crash or empty-state divergence. The Reports route retains its labelled seeded export path when no saved scan is selected; the authenticated Mercury Payments view continues to use the saved-scan export path.
+
+## Improvement plan Phase 3 — Command Center
+
+The Command Center now derives its quantum exposure composition from the active findings, separating quantum-vulnerable, legacy/monitor, and lower-quantum-exposure records. Its evidence outlook is also derived from confidence-ordered risk weights and is explicitly labelled as an evidence signal rather than historical telemetry.
+
+Recent activity now identifies whether the current context comes from saved scan evidence or seeded demo evidence, including finding and relationship counts. All four KPI cards are keyboard-accessible drill-down actions: inventory, a quantum-vulnerable finding, a qualified HNDL finding, and PQC guidance respectively. The quantum-vulnerable drill-down was exercised against the Mercury Payments scan and opened the RSA-2048 evidence detail. TypeScript validation passed and the full suite passes with **23 tests** across seven files.
+
+## Improvement plan Phase 4 — Inventory and graph exploration
+
+CBOM Inventory now provides active-data search, risk, quantum-state, and environment filters; deterministic sorting by algorithm, risk, criticality, and confidence; pagination; and richer library/version, environment, sensitivity, confidence, and risk columns. Selected evidence retains its source-level metadata and now shows a relationship-derived blast-radius summary plus recommendation preview. The quantum-vulnerable filter was exercised on the Mercury Payments scan and correctly narrowed the view to RSA-2048 and ECDSA P-256.
+
+Dependency Graph now uses a deterministic type-aware layout from the active relationship model, with explicit node-type legend, drag pan, scroll/button zoom, reset, selected-edge focus, and focused blast-radius severity context. The RSA-2048 focus path was verified, showing the three observed IMPLEMENTS, PROTECTS, and SUPPORTS relationships with one high-risk linked finding. TypeScript validation passed and the full suite passes with **25 tests** across eight files.
