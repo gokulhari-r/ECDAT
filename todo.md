@@ -45,3 +45,6 @@
 - [x] Save a Spatial Environment requirement map tying hierarchy, search, blast radius, timeline, migration, and fallback behavior to the active ECDAT data model and routes.
 - [x] Implement a data-backed Spatial Mode entry point, hierarchical descent controls, search-to-descent, blast-radius focus, timeline, and migration panel using the active ECDAT scan.
 - [x] Add responsive 2D fallback behavior, accessibility controls, automated tests, and visual verification for Spatial Mode.
+- [x] Inspect the supplied Zumerlab design package and map its transferable visual cues to the ECDAT Spatial Mode without weakening data readability or accessibility.
+- [x] Restyle the Spatial Mode WebGL scene, controls, detail panels, and responsive fallback using the approved reference cues while preserving scan-backed behavior.
+- [x] Visually verify the Zumerlab-inspired Spatial Mode on desktop and mobile, then document and checkpoint the visual update.

@@ -35,3 +35,15 @@ Spatial Mode extends **Quantum Descent**; it does not replace ECDAT’s normal e
 ## Product safeguards
 
 Spatial Mode must never hardcode enterprise impact counts, create synthetic attack simulations, or present estimates as factual certainty. The scene must clearly identify seeded preview data for signed-out users and preserve the existing saved-scan fallback behavior for authenticated users.
+
+## Zumerlab style adaptation
+
+The supplied Zumerlab reference contributes a **focus-driven navigation** language rather than a wholesale page redesign. The transferable cues are a deep blue-black field with a centered atmospheric bloom, a small top status capsule, a confident amber-to-coral focal accent, compact elevated selection cards, fine blue boundaries, and a deliberate “zoom into what matters” hierarchy. The same direction will be applied to ECDAT only where it improves spatial orientation and entity selection.
+
+| Reference cue | ECDAT Spatial Mode adaptation | Safeguard |
+|---|---|---|
+| Centered depth field and restrained blue bloom | Strengthen the spatial canvas depth gradient, grid, and camera-focus composition | No decorative objects or simulated attacks; visible nodes remain active-scan entities. |
+| Warm amber-to-coral focal accent | Use a measured amber/coral emphasis for selected or highest-risk entities and their relationship path | Keep critical/high/medium/low risk distinctions legible and do not let the accent override risk semantics. |
+| Compact dark selection cards | Restyle node labels, search results, breadcrumbs, and lens controls as consistent elevated investigation cards | Preserve keyboard focus, readable metadata, and the existing data labels. |
+| Focus-driven navigation messaging | Introduce concise “focus / descend / inspect” visual hierarchy within the current controls | Retain explicit normal-mode escape, reset, breadcrumb, and Inventory exit routes. |
+| Controlled expressive motion | Use short transform/opacity transitions for lens changes and node emphasis when motion is allowed | Respect `prefers-reduced-motion`; the existing 2D fallback remains non-WebGL and keyboard accessible. |

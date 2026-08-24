@@ -86,3 +86,13 @@ The **Exit to inventory** control was verified from Spatial Mode. It routed to `
 At a 390-pixel mobile viewport, Spatial Mode used the responsive, keyboard-addressable two-dimensional fallback. It rendered the same calculated enterprise clusters and selected-finding details without WebGL interaction requirements. The fallback communicates “Select an observed entity to descend” rather than showing inactive orbit controls.
 
 The final regression suite includes four scan-derived spatial projection tests for calculated clusters, evidence-backed blast radius, finding-specific timeline and migration mapping, and search results. TypeScript validation passed, and the full suite passed with **21 tests** across six files.
+
+## Zumerlab-inspired Spatial Mode visual update
+
+The supplied Zumerlab reference was translated into the **Spatial Mode field only**, not applied as a generic platform reskin. The retained ECDAT data model, risk semantics, navigation, WebGL renderer, and accessible fallback continue to drive all visible entities and relationship paths.
+
+The desktop field was verified in the dark workspace. It now uses a deep blue-black focus field, indigo depth bloom, fine blue grid, compact elevated observation labels, amber/coral focus accents, controlled camera drift, and warm selected relationship paths. Risk values remain encoded by the scene’s observed risk weights; the warmer focus palette adds hierarchy without inventing new security states.
+
+The responsive 390-pixel fallback was rechecked. It retained its keyboard-addressable calculated entity cards, while adopting the same blue depth field, compact elevated cards, amber/coral selected state, and no-WebGL guidance. The normal-mode exit, evidence detail, and data labels remained unchanged.
+
+The style update intentionally removed the Spatial Mode blur treatment and keeps non-essential motion behind the existing reduced-motion preference. TypeScript validation passed and the full Vitest suite remained green with **21 tests** across six files.

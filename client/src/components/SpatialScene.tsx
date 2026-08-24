@@ -35,10 +35,10 @@ const cameraPositions: Record<SpatialSceneProps["view"], [number, number, number
 };
 
 function nodeColor(weight: number) {
-  if (weight >= 7) return "#fb7185";
-  if (weight >= 5) return "#f59e0b";
-  if (weight >= 3) return "#22d3ee";
-  return "#94a3b8";
+  if (weight >= 7) return "#ff8a3d";
+  if (weight >= 5) return "#f0b428";
+  if (weight >= 3) return "#64a0ff";
+  return "#a8bdd4";
 }
 
 function layoutRing<T extends { id: string; label: string; kind: string; riskWeight: number }>(items: T[], meta: (item: T) => string): SceneNode[] {
@@ -80,7 +80,7 @@ function SpatialNode({ node, selected, onSelect }: { node: SceneNode; selected: 
       </mesh>
       {selected ? <mesh>
         <ringGeometry args={[radius * 1.32, radius * 1.43, 48]} />
-        <meshBasicMaterial color="#e0f2fe" transparent opacity={0.78} side={2} />
+        <meshBasicMaterial color="#ffcb6b" transparent opacity={0.86} side={2} />
       </mesh> : null}
       <Html center>
         <button type="button" onClick={onSelect} className={`spatial-node-label ${selected ? "spatial-node-label--selected" : ""}`} aria-label={`Focus ${node.label}`}>
@@ -108,25 +108,26 @@ function SceneContents({ clusters, graphNodes, edges, view, selectedId, onSelect
 
   return (
     <>
-      <color attach="background" args={["#06101c"]} />
-      <fog attach="fog" args={["#06101c", 11, 27]} />
-      <ambientLight intensity={1.2} />
-      <pointLight position={[0, 5, 8]} intensity={45} color="#67e8f9" distance={24} />
-      <pointLight position={[-8, -3, 5]} intensity={24} color="#a78bfa" distance={20} />
+      <color attach="background" args={["#07080f"]} />
+      <fog attach="fog" args={["#07080f", 11, 27]} />
+      <ambientLight intensity={1.05} />
+      <pointLight position={[0, 5, 8]} intensity={48} color="#64a0ff" distance={24} />
+      <pointLight position={[-8, -3, 5]} intensity={26} color="#ff8a3d" distance={20} />
+      <pointLight position={[7, 2, 0]} intensity={14} color="#5544cc" distance={17} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -4.35, 0]}>
         <planeGeometry args={[32, 32]} />
-        <meshStandardMaterial color="#071423" metalness={0.7} roughness={0.7} />
+        <meshStandardMaterial color="#0b1024" metalness={0.74} roughness={0.68} />
       </mesh>
-      <gridHelper args={[30, 30, "#164e63", "#0f2740"]} position={[0, -4.3, 0]} />
+      <gridHelper args={[30, 30, "#2a3050", "#10172e"]} position={[0, -4.3, 0]} />
       {visibleEdges.map(edge => {
         const source = nodeMap.get(edge.source)!;
         const target = nodeMap.get(edge.target)!;
         const active = selectedId === edge.source || selectedId === edge.target;
-        return <Line key={`${edge.source}:${edge.target}`} points={[source.position, target.position]} color={active ? "#a5f3fc" : "#26617b"} lineWidth={active ? 1.6 : 0.7} transparent opacity={active ? 0.95 : 0.38} />;
+        return <Line key={`${edge.source}:${edge.target}`} points={[source.position, target.position]} color={active ? "#f0b428" : "#3d5588"} lineWidth={active ? 1.7 : 0.65} transparent opacity={active ? 0.96 : 0.32} />;
       })}
       {nodes.map(node => <SpatialNode key={node.id} node={node} selected={node.id === selectedId} onSelect={() => onSelect(node.id)} />)}
       <CameraRig view={view} />
-      <OrbitControls enablePan={false} minDistance={7} maxDistance={23} autoRotate={view === "enterprise" && !selectedId} autoRotateSpeed={0.3} />
+      <OrbitControls enablePan={false} minDistance={7} maxDistance={23} autoRotate={view === "enterprise" && !selectedId} autoRotateSpeed={0.17} />
     </>
   );
 }
