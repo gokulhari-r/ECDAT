@@ -42,3 +42,6 @@
 - [x] Add a regression test proving repeated seeded scenario runs accept the same finding keys under distinct scan keys.
 - [x] Add a transaction rollback test proving a findings-insert error leaves no committed scan or related records.
 - [x] Re-run the persistence tests and confirm the authenticated Java demo scan remains successful.
+- [x] Save a Spatial Environment requirement map tying hierarchy, search, blast radius, timeline, migration, and fallback behavior to the active ECDAT data model and routes.
+- [x] Implement a data-backed Spatial Mode entry point, hierarchical descent controls, search-to-descent, blast-radius focus, timeline, and migration panel using the active ECDAT scan.
+- [x] Add responsive 2D fallback behavior, accessibility controls, automated tests, and visual verification for Spatial Mode.

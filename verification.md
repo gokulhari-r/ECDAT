@@ -72,3 +72,17 @@ The repaired Java enterprise scan completed successfully and navigated to its pe
 The regression suite now includes a repeated-run payload test for the same seeded `findingKey` under two different `scanKey` values, plus a failure-path test that confirms a transactional findings-insert error prevents the post-insert detail lookup. TypeScript validation and all **14** project tests pass.
 
 The failure-path test now uses a stateful transaction simulation: it stages the initial scan row, forces the findings insert to fail, and proves that neither the staged scan nor related detail payloads are committed after the transaction rejects.
+
+## Spatial Mode verification
+
+The Quantum Descent page now presents an explicit **ENTER SPATIAL MODE** action while retaining the existing normal enterprise-to-risk navigation. The spatial scene was verified against the authenticated saved Mercury Payments scan, which rendered calculated enterprise clusters, selected RSA-2048 evidence metadata, active-scan metrics, an evidence-derived blast-radius summary, and the recommendation engine’s generated hybrid migration target with indicative effort and latency labels.
+
+The WebGL renderer was verified after removing the development-only JSX location injector that attempted to pass unsupported `data-loc` attributes to React Three Fiber primitives. The finished scene renders a central high-risk node and bounded current-level entities rather than an unfiltered inventory. It supports Enterprise, Risk, Dependency, Cryptography, Timeline, and Migration lenses; normal back/breadcrumb controls; and reset behavior.
+
+Search-to-descent was exercised by searching for **ECDSA P-256**. Selecting the observed finding moved the spatial level to its artefact context and showed the corresponding `ECDSA + ML-DSA-87` generated recommendation, compatibility condition, and relevant remediation waves. The selected RSA-2048 path also showed a Mosca-style timeline with the configured planning horizon explicitly labelled as an estimate, together with the derived HNDL status.
+
+The **Exit to inventory** control was verified from Spatial Mode. It routed to `/inventory?finding=py-tls-rsa` and opened the selected RSA-2048 CBOM evidence detail rather than losing the current investigation context.
+
+At a 390-pixel mobile viewport, Spatial Mode used the responsive, keyboard-addressable two-dimensional fallback. It rendered the same calculated enterprise clusters and selected-finding details without WebGL interaction requirements. The fallback communicates “Select an observed entity to descend” rather than showing inactive orbit controls.
+
+The final regression suite includes four scan-derived spatial projection tests for calculated clusters, evidence-backed blast radius, finding-specific timeline and migration mapping, and search results. TypeScript validation passed, and the full suite passed with **21 tests** across six files.
