@@ -106,3 +106,4 @@
 - [x] Confirm the Dependency Graph verification record is updated and save the final graph rebuild checkpoint.
 - [x] Re-verify normal graph-node click selection with an explicit SVG hit target, then confirm the blast-radius panel updates without console-dispatched events.
 - [x] Confirm the final Dependency Graph verification record and save the completed graph rebuild checkpoint.
+- [x] Remove scroll-wheel zoom from the Dependency Graph, retain button-based zoom, update interaction guidance, verify behavior, and checkpoint the correction.

@@ -104,7 +104,7 @@ export default function Graph() {
     <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
       <section className="overflow-hidden rounded-3xl border border-white/8 bg-[radial-gradient(circle_at_48%_0%,rgba(34,211,238,0.1),transparent_38%),#091423]">
         <div className="overflow-x-auto overscroll-x-contain [scrollbar-color:#334155_transparent]">
-        <svg ref={svgRef} className="h-[590px] min-w-[880px] w-full touch-none select-none" viewBox="0 0 1120 620" role="img" aria-label="Interactive graph of observed cryptographic relationships" onWheel={event => { event.preventDefault(); setTransform(current => ({ ...current, scale: clampZoom(current.scale + (event.deltaY < 0 ? 0.1 : -0.1)) })); }} onPointerDown={event => { dragOrigin.current = { x: event.clientX, y: event.clientY, panX: transform.x, panY: transform.y, moved: false }; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { const origin = dragOrigin.current; if (!origin) return; const dx = (event.clientX - origin.x) / transform.scale; const dy = (event.clientY - origin.y) / transform.scale; if (Math.abs(dx) + Math.abs(dy) > 3) origin.moved = true; setTransform(current => ({ ...current, x: origin.panX + dx, y: origin.panY + dy })); }} onPointerUp={event => { if (!dragOrigin.current) return; dragOrigin.current = null; event.currentTarget.releasePointerCapture(event.pointerId); }}>
+        <svg ref={svgRef} className="h-[590px] min-w-[880px] w-full touch-none select-none" viewBox="0 0 1120 620" role="img" aria-label="Interactive graph of observed cryptographic relationships" onPointerDown={event => { dragOrigin.current = { x: event.clientX, y: event.clientY, panX: transform.x, panY: transform.y, moved: false }; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { const origin = dragOrigin.current; if (!origin) return; const dx = (event.clientX - origin.x) / transform.scale; const dy = (event.clientY - origin.y) / transform.scale; if (Math.abs(dx) + Math.abs(dy) > 3) origin.moved = true; setTransform(current => ({ ...current, x: origin.panX + dx, y: origin.panY + dy })); }} onPointerUp={event => { if (!dragOrigin.current) return; dragOrigin.current = null; event.currentTarget.releasePointerCapture(event.pointerId); }}>
           <defs><filter id="chainGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter><pattern id="graphGrid" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M 42 0 L 0 0 0 42" fill="none" stroke="rgba(148,163,184,0.1)" strokeWidth="1" /></pattern></defs>
           <rect width="1120" height="620" fill="url(#graphGrid)" />
           <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.scale})`}>
@@ -114,7 +114,7 @@ export default function Graph() {
           </g>
         </svg>
         </div>
-        <div className="flex flex-wrap items-center gap-3 border-t border-white/8 bg-[#06101c]/50 px-5 py-3 text-[11px] text-slate-500"><Move className="h-3.5 w-3.5" />Drag to pan · scroll to zoom · Escape clears selection</div>
+        <div className="flex flex-wrap items-center gap-3 border-t border-white/8 bg-[#06101c]/50 px-5 py-3 text-[11px] text-slate-500"><Move className="h-3.5 w-3.5" />Drag to pan · use the zoom controls · Escape clears selection</div>
       </section>
 
       <aside className="rounded-3xl border border-white/8 bg-[#091423] p-5">
