@@ -90,3 +90,10 @@
 - [x] Verify the revised CBOM desktop/mobile layouts and selection behavior, document the removal, and checkpoint the correction.
 - [x] Remove the persistent left-side workspace navigation from the CBOM Inventory route while preserving a stable full-width inventory workspace.
 - [x] Provide compact top-level escape navigation for CBOM without restoring the sideways shell, then verify desktop/mobile stability and checkpoint the correction.
+- [x] Rebuild `Inventory.tsx` from scratch to the user-specified full-width single-column CBOM design, replacing prior conflicting CBOM layout work.
+- [x] Implement exactly eight sortable table columns, risk and quantum filters with active chips, search, 15-row pagination, and no default evidence selection.
+- [x] Implement a row-triggered fixed overlay drawer with backdrop, close control, Escape close, deep-link support, scan-derived Identity/Risk/Evidence/Actions sections, and mobile behavior.
+- [x] Verify filter, sort, pagination, drawer, deep-link, desktop, mobile, loading, empty, and error states; document and checkpoint the CBOM rebuild.
+- [x] Verify the rebuilt CBOM page’s loading state during active-scan resolution and confirm it remains stable.
+- [x] Verify the rebuilt CBOM page’s no-scan empty and retryable error states after the scratch rewrite.
+- [x] Confirm the rebuilt-CBOM verification record and save the completed checkpoint after all state checks pass.

@@ -1,92 +1,100 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { Database, SearchX } from "lucide-react";
-import { Breadcrumb, EcdatHeader } from "@/components/EcdatHeader";
-import { InventoryFilters } from "@/components/InventoryFilters";
-import { InventoryEvidencePanel } from "@/components/InventoryEvidencePanel";
-import { InventorySummaryBar } from "@/components/InventorySummaryBar";
-import { InventoryTable } from "@/components/InventoryTable";
-import { WorkspaceState } from "@/components/WorkspaceState";
+import { AlertTriangle, ChevronLeft, ChevronRight, Compass, Download, GitBranch, Search, SearchX, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { WorkspaceState } from "@/components/WorkspaceState";
 import { useActiveEcdatScan } from "@/hooks/useActiveEcdatScan";
-import { buildInventorySummary, filterInventoryFindings, inventoryColumnKeys, inventoryFindingFromSearch, inventoryOptions, loadInventoryColumns, nextInventorySort, saveInventoryColumns, sortInventoryFindings, type InventoryColumnKey, type InventoryFilters as FilterState, type InventorySort } from "@/lib/inventoryUtils";
+import { cbomFindingFromSearch, filterCbomFindings, paginateCbomFindings, sortCbomFindings, type CbomSortDirection, type CbomSortKey } from "@/lib/cbomInventory";
+import { downloadText } from "@/lib/ecdatUi";
+import { buildSingleAssetCbom, type InventoryFinding } from "@/lib/inventoryUtils";
 
-const columnStorageKey = "ecdat-inventory-columns-v1";
-const defaultFilters: FilterState = { query: "", assetType: "all", risk: "all", quantum: "all", application: "all" };
-const pageSizes = [15, 25, 50] as const;
+const PAGE_SIZE = 15;
+const RISK_LEVELS = ["Critical", "High", "Medium", "Low"] as const;
+const tableColumns = [
+  { key: "risk", label: "Risk" },
+  { key: "asset", label: "Asset" },
+  { key: "algorithm", label: "Algorithm" },
+  { key: "role", label: "Role" },
+  { key: "library", label: "Library" },
+  { key: "version", label: "Version" },
+  { key: "quantum", label: "Quantum" },
+  { key: "confidence", label: "Confidence" },
+] as const;
+const quantumLabel = (finding: InventoryFinding) => finding.quantumVulnerable ? "Vulnerable" : (finding.quantumRisk || "Monitored");
+const riskClass: Record<string, string> = { Critical: "border-rose-300/25 bg-rose-300/10 text-rose-100", High: "border-amber-300/25 bg-amber-300/10 text-amber-100", Medium: "border-cyan-300/25 bg-cyan-300/10 text-cyan-100", Low: "border-emerald-300/25 bg-emerald-300/10 text-emerald-100" };
 
-function getInitialState() {
-  const params = new URLSearchParams(window.location.search);
-  const risk = params.get("risk");
-  return {
-    finding: inventoryFindingFromSearch(window.location.search),
-    filters: {
-      query: params.get("query") ?? params.get("algorithm") ?? "",
-      assetType: params.get("type") ?? "all",
-      risk: risk ? `${risk.slice(0, 1).toUpperCase()}${risk.slice(1).toLowerCase()}` : "all",
-      quantum: params.get("quantum") ?? "all",
-      application: params.get("application") ?? "all",
-    } satisfies FilterState,
-  };
+function initialFinding() {
+  return cbomFindingFromSearch(window.location.search);
 }
 
 export default function Inventory() {
   const workspace = useActiveEcdatScan();
   const [, setLocation] = useLocation();
-  const initial = useMemo(getInitialState, []);
-  const qaState = useMemo(() => import.meta.env.DEV ? new URLSearchParams(window.location.search).get("qaState") : null, []);
   const searchRef = useRef<HTMLInputElement>(null);
-  const [filters, setFilters] = useState<FilterState>(initial.filters);
-  const [selected, setSelected] = useState<string | null>(initial.finding);
-  const [sorting, setSorting] = useState<InventorySort[]>([{ key: "risk", direction: "desc" }]);
-  const [columns, setColumns] = useState<InventoryColumnKey[]>(() => loadInventoryColumns(columnStorageKey));
-  const [pageSize, setPageSize] = useState<(typeof pageSizes)[number]>(15);
+  const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get("query") ?? "");
+  const [riskFilter, setRiskFilter] = useState(() => new URLSearchParams(window.location.search).get("risk") ?? "all");
+  const [quantumFilter, setQuantumFilter] = useState(() => new URLSearchParams(window.location.search).get("quantum") ?? "all");
+  const [sortKey, setSortKey] = useState<CbomSortKey>("risk");
+  const [sortDir, setSortDir] = useState<CbomSortDirection>("desc");
   const [page, setPage] = useState(1);
-  const { findings, displayName } = workspace;
-  const options = useMemo(() => inventoryOptions(findings), [findings]);
-  const summary = useMemo(() => buildInventorySummary(findings), [findings]);
-  const filtered = useMemo(() => filterInventoryFindings(findings, filters), [findings, filters]);
-  const sorted = useMemo(() => sortInventoryFindings(filtered, sorting), [filtered, sorting]);
-  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const visible = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const activeFinding = findings.find(finding => finding.findingKey === selected);
-  const activeRecommendation = workspace.recommendations.find(recommendation => recommendation.findingKey === selected);
+  const [selected, setSelected] = useState<string | null>(initialFinding);
+  const qaState = useMemo(() => import.meta.env.DEV ? new URLSearchParams(window.location.search).get("qaState") : null, []);
+  const { findings, displayName, recommendations } = workspace;
 
-  useEffect(() => { setPage(1); }, [filters, sorting, pageSize]);
+  const filtered = useMemo(() => filterCbomFindings(findings, { query, risk: riskFilter, quantum: quantumFilter }), [findings, query, riskFilter, quantumFilter]);
+  const sorted = useMemo(() => sortCbomFindings(filtered, sortKey, sortDir), [filtered, sortDir, sortKey]);
+  const pagination = useMemo(() => paginateCbomFindings(sorted, page, PAGE_SIZE), [page, sorted]);
+  const { totalPages, currentPage, rows: visible } = pagination;
+  const selectedFinding = selected ? findings.find(finding => finding.findingKey === selected) : undefined;
+  const selectedRecommendation = selected ? recommendations.find(recommendation => recommendation.findingKey === selected) : undefined;
+
+  useEffect(() => { setPage(1); }, [query, riskFilter, quantumFilter]);
+  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") { event.preventDefault(); searchRef.current?.focus(); } if (event.key === "Escape") setSelected(null); };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") { event.preventDefault(); searchRef.current?.focus(); }
+      if (event.key === "Escape") setSelected(null);
+    };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
   useEffect(() => {
     const params = new URLSearchParams();
+    if (query) params.set("query", query);
+    if (riskFilter !== "all") params.set("risk", riskFilter);
+    if (quantumFilter !== "all") params.set("quantum", quantumFilter);
     if (selected) params.set("finding", selected);
-    if (filters.assetType !== "all") params.set("type", filters.assetType);
-    if (filters.risk !== "all") params.set("risk", filters.risk.toLowerCase());
-    if (filters.quantum !== "all") params.set("quantum", filters.quantum);
-    if (filters.application !== "all") params.set("application", filters.application);
-    if (filters.query) params.set("query", filters.query);
     if (qaState) params.set("qaState", qaState);
     window.history.replaceState(null, "", `/inventory${params.size ? `?${params.toString()}` : ""}`);
-  }, [filters, qaState, selected]);
+  }, [query, quantumFilter, riskFilter, selected]);
+  useEffect(() => { if (selected && findings.length && !selectedFinding) setSelected(null); }, [findings.length, selected, selectedFinding]);
 
-  function toggleColumn(column: InventoryColumnKey) {
-    setColumns(current => {
-      const next = current.includes(column) ? current.filter(item => item !== column) : inventoryColumnKeys.filter(item => current.includes(item) || item === column);
-      if (!next.length) return current;
-      saveInventoryColumns(columnStorageKey, next);
-      return next;
-    });
-  }
-  function selectFinding(findingKey: string) { setSelected(findingKey); }
-  function clearFilters() { setFilters(defaultFilters); setPage(1); }
+  const clearFilters = () => { setQuery(""); setRiskFilter("all"); setQuantumFilter("all"); };
+  const selectFinding = (findingKey: string) => setSelected(findingKey);
+  const changeSort = (key: CbomSortKey) => { if (key === sortKey) setSortDir(current => current === "asc" ? "desc" : "asc"); else { setSortKey(key); setSortDir(key === "risk" || key === "confidence" ? "desc" : "asc"); } };
 
-  if (workspace.hasError) return <WorkspaceState state="error" title="Inventory data is unavailable" description="The current scan view could not be loaded. Retry to restore the evidence-backed inventory." onRetry={() => void workspace.retry()} />;
-  if (workspace.isLoading && !findings.length) return <WorkspaceState state="loading" title="Loading cryptographic inventory" description="Resolving evidence-backed findings, related risk context, and provenance." />;
-  if (!findings.length) return <div className="mx-auto max-w-[720px] text-center"><WorkspaceState state="empty" title="No scan data yet" description="Run a scan from the Command Center to populate the cryptographic inventory." /><Button onClick={() => setLocation("/")} className="mt-4 bg-cyan-200 text-[#072033] hover:bg-cyan-100">Go to Command Center</Button></div>;
+  if (qaState === "error" || workspace.hasError) return <WorkspaceState state="error" title="Inventory data is unavailable" description="The current scan view could not be loaded. Retry to restore evidence-backed inventory records." onRetry={() => void workspace.retry()} />;
+  if (qaState === "loading" || (workspace.isLoading && !findings.length)) return <WorkspaceState state="loading" title="Loading cryptographic inventory" description="Resolving evidence-backed findings and scan context." />;
+  if (qaState === "empty" || !findings.length) return <div className="mx-auto max-w-2xl text-center"><WorkspaceState state="empty" title="No scan data yet" description="Run a scan from the Command Center to populate the cryptographic inventory." /><Button onClick={() => setLocation("/")} className="mt-4 bg-cyan-200 text-[#072033] hover:bg-cyan-100">Go to Command Center</Button></div>;
 
-  return <div className="mx-auto max-w-[1550px] space-y-5"><Breadcrumb section="CBOM inventory" /><EcdatHeader eyebrow="Evidence-backed CBOM" title="A crypto inventory with receipts." description="Every record keeps its algorithm, role, location, version, usage context, confidence, and scanner provenance close to the decision." /><InventorySummaryBar summary={summary} /><InventoryFilters filters={filters} onFiltersChange={setFilters} assetTypes={options.assetTypes} quantumStates={options.quantumStates} applicationName={displayName} columns={columns} onToggleColumn={toggleColumn} onClear={clearFilters} searchRef={searchRef} />
-    <section className="overflow-hidden rounded-3xl border border-white/8 bg-[#091423]"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] px-4 py-4 md:px-5"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-cyan-300/10 text-cyan-100"><Database className="h-4 w-4" /></span><div><p className="text-sm font-medium text-slate-100">Cryptographic asset explorer</p><p className="mt-0.5 text-xs text-slate-500">{filtered.length} matching of {findings.length} observed records · Shift+click adds a sort</p></div></div><label className="flex items-center gap-2 text-xs text-slate-500">Rows<select value={pageSize} onChange={event => setPageSize(Number(event.target.value) as (typeof pageSizes)[number])} className="h-8 rounded-lg border border-white/10 bg-[#06101c] px-2 text-xs text-slate-300">{pageSizes.map(size => <option key={size} value={size}>{size}</option>)}</select></label></div>{visible.length ? <InventoryTable findings={visible} columns={columns} sorting={sorting} selected={selected} onSort={(key, append) => setSorting(current => nextInventorySort(current, key, append))} onSelect={selectFinding} onMove={setSelected} /> : <div className="flex min-h-64 flex-col items-center justify-center p-8 text-center"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/[0.04] text-slate-500"><SearchX className="h-5 w-5" /></span><h2 className="mt-4 font-display text-xl font-semibold text-slate-100">No assets match your filters</h2><p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">Try adjusting your search or filter criteria to return to observed evidence.</p><Button variant="outline" onClick={clearFilters} className="mt-5 border-white/10 bg-white/[0.03] text-slate-200">Clear all filters</Button></div>}<div className="flex flex-col gap-3 border-t border-white/[0.07] px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-5"><p className="text-xs text-slate-500">Page {currentPage} / {totalPages}</p><div className="flex gap-2"><Button size="sm" variant="outline" disabled={currentPage === 1} onClick={() => setPage(current => Math.max(1, current - 1))} className="border-white/10 bg-transparent text-slate-300">Prev</Button><Button size="sm" variant="outline" disabled={currentPage === totalPages} onClick={() => setPage(current => Math.min(totalPages, current + 1))} className="border-white/10 bg-transparent text-slate-300">Next</Button></div></div></section>{activeFinding ? <InventoryEvidencePanel finding={activeFinding} relationships={workspace.relationships} recommendation={activeRecommendation} displayName={displayName} onClose={() => setSelected(null)} onNavigate={setLocation} /> : null}
+  const firstItem = sorted.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
+  const lastItem = Math.min(currentPage * PAGE_SIZE, sorted.length);
+  return <div className="mx-auto max-w-[1700px] space-y-6"><header className="border-b border-white/[0.08] pb-5"><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-200/65">Evidence-backed CBOM</p><div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h1 className="font-display text-3xl font-semibold tracking-[-0.045em] text-white md:text-4xl">Cryptographic inventory</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Filter, compare, and inspect observed cryptographic evidence without losing the full table context.</p></div><Button variant="outline" onClick={() => setLocation("/")} className="border-white/10 bg-white/[0.025] text-slate-200"><Compass className="h-4 w-4" />Command Center</Button></div></header>
+    <section className="rounded-2xl border border-white/[0.08] bg-[#091423] p-4 md:p-5"><div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_220px]"><label className="relative block"><span className="sr-only">Search inventory</span><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><input ref={searchRef} value={query} onChange={event => setQuery(event.target.value)} placeholder="Search assets, algorithms, libraries, or source…" className="h-10 w-full rounded-lg border border-white/10 bg-[#06101c] pl-10 pr-3 text-sm text-slate-100 outline-none placeholder:text-slate-600 focus:border-cyan-200/40 focus:ring-2 focus:ring-cyan-200/15" /></label><Select value={riskFilter} onValueChange={setRiskFilter}><SelectTrigger className="w-full border-white/10 bg-[#06101c] text-slate-200"><SelectValue placeholder="Risk level" /></SelectTrigger><SelectContent className="border-white/10 bg-[#0b1726] text-slate-100"><SelectItem value="all">All risk levels</SelectItem>{RISK_LEVELS.map(level => <SelectItem key={level} value={level}>{level}</SelectItem>)}</SelectContent></Select><Select value={quantumFilter} onValueChange={setQuantumFilter}><SelectTrigger className="w-full border-white/10 bg-[#06101c] text-slate-200"><SelectValue placeholder="Quantum state" /></SelectTrigger><SelectContent className="border-white/10 bg-[#0b1726] text-slate-100"><SelectItem value="all">All quantum states</SelectItem><SelectItem value="vulnerable">Quantum-vulnerable</SelectItem><SelectItem value="monitored">Not quantum-vulnerable</SelectItem></SelectContent></Select></div>{query || riskFilter !== "all" || quantumFilter !== "all" ? <div className="mt-3 flex flex-wrap items-center gap-2"><span className="text-xs text-slate-500">Active filters</span>{query ? <FilterChip label={`Search: ${query}`} onRemove={() => setQuery("")} /> : null}{riskFilter !== "all" ? <FilterChip label={`Risk: ${riskFilter}`} onRemove={() => setRiskFilter("all")} /> : null}{quantumFilter !== "all" ? <FilterChip label={quantumFilter === "vulnerable" ? "Quantum: vulnerable" : "Quantum: not vulnerable"} onRemove={() => setQuantumFilter("all")} /> : null}<Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 px-2 text-xs text-slate-400 hover:text-white">Clear filters</Button></div> : null}</section>
+    <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#091423]"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] px-4 py-4 md:px-5"><div><p className="text-sm font-medium text-slate-100">Observed cryptographic assets</p><p className="mt-1 text-xs text-slate-500">Click a row to inspect evidence. Details never open until selected.</p></div><p className="text-xs text-slate-500">Showing {firstItem}–{lastItem} of {sorted.length}</p></div>{visible.length ? <div className="overflow-x-auto"><table className="w-full min-w-[1060px] border-collapse text-left"><thead className="bg-white/[0.025]"><tr>{tableColumns.map(column => <th key={column.key} scope="col" aria-sort={sortKey === column.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"} className="border-b border-white/[0.07] px-4 py-3 first:pl-5"><button onClick={() => changeSort(column.key)} className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.13em] text-slate-500 transition hover:text-cyan-100">{column.label}<span className={sortKey === column.key ? "text-cyan-100" : "text-slate-700"}>{sortKey === column.key ? (sortDir === "asc" ? "↑" : "↓") : "↕"}</span></button></th>)}</tr></thead><tbody>{visible.map(finding => <tr key={finding.findingKey} tabIndex={0} role="button" aria-label={`View evidence for ${finding.assetName}`} onClick={() => selectFinding(finding.findingKey)} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectFinding(finding.findingKey); } }} className="cursor-pointer border-b border-white/[0.055] outline-none transition hover:bg-cyan-300/[0.045] focus:bg-cyan-300/[0.07]"> <td className="px-4 py-3.5 pl-5"><RiskBadge level={finding.riskLevel} /></td><td className="max-w-[250px] px-4 py-3.5"><p className="truncate font-mono text-xs font-medium text-slate-100">{finding.assetName}</p><p className="mt-1 truncate text-[11px] text-slate-500">{finding.assetType}</p></td><td className="px-4 py-3.5 font-mono text-xs text-slate-300">{finding.algorithm}</td><td className="px-4 py-3.5 text-xs text-slate-300">{finding.cryptoRole}</td><td className="px-4 py-3.5 text-xs text-slate-400">{finding.library ?? "—"}</td><td className="px-4 py-3.5 font-mono text-xs text-slate-400">{finding.version ?? "—"}</td><td className="px-4 py-3.5"><QuantumBadge finding={finding} /></td><td className="px-4 py-3.5 pr-5 text-xs font-medium text-slate-200">{finding.confidence}%</td></tr>)}</tbody></table></div> : <div className="flex min-h-64 flex-col items-center justify-center p-8 text-center"><SearchX className="h-6 w-6 text-slate-500" /><h2 className="mt-4 font-display text-xl font-semibold text-slate-100">No assets match these filters</h2><p className="mt-2 max-w-md text-sm leading-6 text-slate-500">Clear or adjust the active filters to return to observed cryptographic evidence.</p><Button variant="outline" onClick={clearFilters} className="mt-5 border-white/10 bg-white/[0.025] text-slate-200">Clear all filters</Button></div>}<footer className="flex flex-col gap-3 border-t border-white/[0.08] px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-5"><p className="text-xs text-slate-500">Page {currentPage} of {totalPages}</p><div className="flex gap-2"><Button size="sm" variant="outline" disabled={currentPage === 1} onClick={() => setPage(current => Math.max(1, current - 1))} className="border-white/10 bg-white/[0.025] text-slate-200"><ChevronLeft className="h-4 w-4" />Prev</Button><Button size="sm" variant="outline" disabled={currentPage === totalPages} onClick={() => setPage(current => Math.min(totalPages, current + 1))} className="border-white/10 bg-white/[0.025] text-slate-200">Next<ChevronRight className="h-4 w-4" /></Button></div></footer></section>
+    {selectedFinding ? <EvidenceDrawer finding={selectedFinding} displayName={displayName} recommendation={selectedRecommendation} onClose={() => setSelected(null)} onNavigate={setLocation} /> : null}
   </div>;
 }
+
+function EvidenceDrawer({ finding, displayName, recommendation, onClose, onNavigate }: { finding: InventoryFinding; displayName: string; recommendation?: { title: string; candidate: string; migrationNotes: string; priority: number }; onClose: () => void; onNavigate: (path: string) => void }) {
+  const exportFinding = () => downloadText(`ecdat-${finding.findingKey}.cbom.json`, JSON.stringify(buildSingleAssetCbom({ displayName, finding }), null, 2), "application/json");
+  return <><button aria-label="Close evidence details" onClick={onClose} className="fixed inset-0 z-40 cursor-default bg-slate-950/60 backdrop-blur-[1px]" /><aside role="dialog" aria-modal="true" aria-labelledby="cbom-drawer-title" className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[520px] flex-col border-l border-white/10 bg-[#081321] text-slate-100 shadow-[-24px_0_70px_rgba(0,0,0,0.38)]"><header className="flex items-start justify-between gap-4 border-b border-white/[0.08] p-5"><div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-cyan-200/65">Observed evidence</p><h2 id="cbom-drawer-title" className="mt-1 break-words font-mono text-lg font-semibold text-white">{finding.assetName}</h2><div className="mt-3 flex flex-wrap gap-2"><RiskBadge level={finding.riskLevel} /><QuantumBadge finding={finding} /></div></div><Button size="icon" variant="outline" onClick={onClose} className="shrink-0 border-white/10 bg-white/[0.025] text-slate-300" aria-label="Close details"><X className="h-4 w-4" /></Button></header><div className="flex-1 space-y-6 overflow-y-auto p-5"><DrawerSection title="Identity"><Detail label="Algorithm" value={finding.algorithm} /><Detail label="Cryptographic role" value={finding.cryptoRole} /><Detail label="Library" value={finding.library ?? "Not observed"} /><Detail label="Version" value={finding.version ?? "Not observed"} /><Detail label="Source location" value={finding.sourceLocation} mono /><Detail label="Usage context" value={finding.usageContext} /></DrawerSection><DrawerSection title="Risk"><div className="grid grid-cols-2 gap-3"><Detail label="Risk level" value={finding.riskLevel} /><Detail label="Quantum state" value={quantumLabel(finding)} /><Detail label="Potential HNDL" value={finding.hndlExposure ? "Qualified" : "Not qualified"} /><Detail label="Confidence" value={`${finding.confidence}%`} /><Detail label="Data lifetime" value={`${finding.dataLifetimeYears} years`} /><Detail label="Migration estimate" value={`${finding.migrationMonths} months`} /></div><p className="rounded-xl border border-amber-300/10 bg-amber-300/[0.04] p-3 text-xs leading-5 text-amber-100"><AlertTriangle className="mr-1 inline h-3.5 w-3.5" />Migration timing is an indicative planning input, not an implementation commitment.</p></DrawerSection><DrawerSection title="Evidence"><Detail label="Evidence description" value={finding.evidence} /><Detail label="Provenance" value={finding.provenance} /><Detail label="Data handling" value={`${finding.dataState} · ${finding.sensitivity} · ${finding.environment}`} /></DrawerSection><DrawerSection title="Actions"><div className="space-y-2">{recommendation ? <div className="rounded-xl border border-cyan-300/12 bg-cyan-300/[0.04] p-3"><p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-cyan-100/70">Generated migration candidate · P{recommendation.priority}</p><p className="mt-2 text-sm font-medium text-slate-100">{recommendation.title}</p><p className="mt-1 font-mono text-xs text-cyan-100">{recommendation.candidate}</p><p className="mt-2 text-xs leading-5 text-slate-400">{recommendation.migrationNotes}</p></div> : null}<div className="grid gap-2 sm:grid-cols-2"><Button variant="outline" onClick={() => onNavigate(`/graph?finding=${encodeURIComponent(finding.findingKey)}`)} className="border-white/10 bg-white/[0.025] text-slate-200"><GitBranch className="h-4 w-4" />Dependency graph</Button><Button variant="outline" onClick={() => onNavigate(`/descent?finding=${encodeURIComponent(finding.findingKey)}`)} className="border-white/10 bg-white/[0.025] text-slate-200"><Compass className="h-4 w-4" />Explore descent</Button><Button onClick={exportFinding} className="sm:col-span-2 bg-cyan-200 text-[#072033] hover:bg-cyan-100"><Download className="h-4 w-4" />Export asset CBOM</Button></div></div></DrawerSection></div></aside></>;
+}
+
+function DrawerSection({ title, children }: { title: string; children: React.ReactNode }) { return <section><h3 className="border-b border-white/[0.08] pb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">{title}</h3><div className="mt-4 space-y-4">{children}</div></section>; }
+function Detail({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) { return <div><p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-slate-600">{label}</p><p className={`mt-1.5 break-words text-sm leading-5 text-slate-300 ${mono ? "font-mono text-xs" : ""}`}>{value}</p></div>; }
+function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) { return <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/15 bg-cyan-300/[0.07] px-2.5 py-1 text-xs text-cyan-100">{label}<button onClick={onRemove} aria-label={`Remove ${label} filter`} className="rounded-full text-cyan-100/70 hover:text-white"><X className="h-3 w-3" /></button></span>; }
+function RiskBadge({ level }: { level: string }) { return <Badge variant="outline" className={`whitespace-nowrap border ${riskClass[level] ?? "border-white/10 bg-white/[0.04] text-slate-300"}`}>{level}</Badge>; }
+function QuantumBadge({ finding }: { finding: InventoryFinding }) { return <Badge variant="outline" className={finding.quantumVulnerable ? "whitespace-nowrap border-rose-300/25 bg-rose-300/10 text-rose-100" : "whitespace-nowrap border-emerald-300/20 bg-emerald-300/10 text-emerald-100"}>{quantumLabel(finding)}</Badge>; }
