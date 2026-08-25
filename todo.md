@@ -83,3 +83,5 @@
 - [x] Implement the complete responsive evidence table and a mobile-first asset-card presentation without fabricating source evidence.
 - [x] Implement a tabbed inventory detail drawer with identity, scan-derived risk, blast radius, recommendation, single-asset export, and contextual workspace actions.
 - [x] Add loading, empty, filtered-empty, and error states; complete desktop/mobile/accessibility/data-consistency verification; document and checkpoint the Inventory redesign.
+- [x] Diagnose and correct the unintended right-side container that appears after completing a scan, while preserving saved-scan navigation and evidence context.
+- [x] Verify the post-scan completion flow at desktop and mobile widths, document the layout repair, and checkpoint the fix.

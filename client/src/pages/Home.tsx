@@ -12,6 +12,7 @@ import { startLogin } from "@/const";
 import { useActiveEcdatScan } from "@/hooks/useActiveEcdatScan";
 import { buildCommandCenterViewModel } from "@/lib/commandCenter";
 import { type ScenarioId } from "@/lib/ecdatUi";
+import { postScanDestination } from "@/lib/scanCompletion";
 import { trpc } from "@/lib/trpc";
 import { Activity, AlertTriangle, ArrowRight, BookOpenCheck, Boxes, CheckCircle2, GitBranch, LockKeyhole, Play, ScanSearch, ShieldAlert, Sparkles, TriangleAlert } from "lucide-react";
 import { useLocation } from "wouter";
@@ -25,7 +26,7 @@ export default function Home() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const utils = trpc.useUtils();
-  const runDemo = trpc.ecdat.runDemo.useMutation({ onSuccess: async detail => { localStorage.setItem("ecdat-last-scan", detail.scan.scanKey); await utils.ecdat.scans.invalidate(); await utils.ecdat.detail.invalidate(); setLocation(`/inventory?finding=${encodeURIComponent(detail.findings[0]?.findingKey ?? "")}`); } });
+  const runDemo = trpc.ecdat.runDemo.useMutation({ onSuccess: async detail => { localStorage.setItem("ecdat-last-scan", detail.scan.scanKey); await utils.ecdat.scans.invalidate(); await utils.ecdat.detail.invalidate(); setLocation(postScanDestination()); } });
   const scenarioInfo = catalog.find(item => item.id === scenario);
   const model = useMemo(() => buildCommandCenterViewModel({ displayName: active.displayName, totalAssets: active.totalAssets, quantumReadiness: active.quantumReadiness, findings: active.findings, recommendations: active.recommendations, relationships: active.relationships, usingSavedScan: active.usingSavedScan }, active.recentScans), [active.displayName, active.totalAssets, active.quantumReadiness, active.findings, active.recommendations, active.relationships, active.usingSavedScan, active.recentScans]);
 
