@@ -107,4 +107,3 @@
 - [x] Re-verify normal graph-node click selection with an explicit SVG hit target, then confirm the blast-radius panel updates without console-dispatched events.
 - [x] Confirm the final Dependency Graph verification record and save the completed graph rebuild checkpoint.
 - [x] Remove scroll-wheel zoom from the Dependency Graph, retain button-based zoom, update interaction guidance, verify behavior, and checkpoint the correction.
-- [x] Remove the Dependency Graph blast-radius panel’s affected-assets redirect to CBOM Inventory, verify the revised in-graph panel, and checkpoint the correction.
