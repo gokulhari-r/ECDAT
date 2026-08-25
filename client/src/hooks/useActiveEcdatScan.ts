@@ -43,11 +43,12 @@ export function useActiveEcdatScan() {
   const active = chooseActiveSource({ isAuthenticated, saved, fallback });
   const forceEmpty = qaState === "empty";
   const forceError = qaState === "error";
+  const forceLoading = qaState === "loading";
   return {
     scanKey,
     isAuthenticated,
     usingSavedScan: Boolean(isAuthenticated && saved),
-    isLoading: !forceEmpty && !forceError && (scans.isLoading || detail.isLoading || preview.isLoading),
+    isLoading: forceLoading || (!forceEmpty && !forceError && (scans.isLoading || detail.isLoading || preview.isLoading)),
     hasError: forceError || Boolean(scans.error || detail.error || preview.error),
     retry: () => Promise.all([scans.refetch(), detail.refetch(), preview.refetch()]),
     displayName: active?.displayName ?? "Loading scenario",

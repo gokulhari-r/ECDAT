@@ -97,3 +97,12 @@
 - [x] Verify the rebuilt CBOM page’s loading state during active-scan resolution and confirm it remains stable.
 - [x] Verify the rebuilt CBOM page’s no-scan empty and retryable error states after the scratch rewrite.
 - [x] Confirm the rebuilt-CBOM verification record and save the completed checkpoint after all state checks pass.
+- [x] Map the supplied Dependency Graph plan to active-scan relationship evidence, existing selection deep links, routes, and responsive workspace behavior.
+- [x] Build and test scan-derived graph utilities for typed positioned nodes, curved edges, bidirectional dependency chains, and bounded blast-radius calculations.
+- [x] Rebuild the Graph page with an interactive SVG canvas, pan/zoom, six-type column layout, filters, legend, keyboard selection reset, and dependency-chain highlighting.
+- [x] Add a scan-derived blast-radius panel with affected evidence context and safe Inventory/roadmap navigation actions.
+- [x] Verify seeded scenarios, loading/empty/error states, responsive interactions, data consistency, documentation, and checkpoint the completed graph rebuild.
+- [x] Re-verify direct graph-node selection persistence, zoom controls, and Escape reset after the final SVG interaction fix.
+- [x] Confirm the Dependency Graph verification record is updated and save the final graph rebuild checkpoint.
+- [x] Re-verify normal graph-node click selection with an explicit SVG hit target, then confirm the blast-radius panel updates without console-dispatched events.
+- [x] Confirm the final Dependency Graph verification record and save the completed graph rebuild checkpoint.
