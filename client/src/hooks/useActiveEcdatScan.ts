@@ -61,6 +61,7 @@ export function useActiveEcdatScan() {
     relationships: forceEmpty ? [] : active?.relationships ?? [],
     waves: forceEmpty ? [] : active?.waves ?? [],
     assumptions: active?.assumptions ?? [],
+    recentScans: scans.data ?? [],
     detail,
   };
 }

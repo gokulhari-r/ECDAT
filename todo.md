@@ -72,3 +72,9 @@
 - [x] Implement a protected AI Crypto Analyst tRPC procedure that uses current saved-scan evidence, constrained prompts, managed server-side credentials, and no local secrets.
 - [x] Add an accessible Spatial Mode copilot panel and integrate attack simulation controls, results, and any deterministic node-highlighting behavior.
 - [x] Add focused automated tests and complete desktop/mobile visual verification, documentation, and checkpointing for the intelligence upgrade.
+- [x] Inspect the supplied Command Center plan and map its requested view model, existing components, filters, routes, and design tokens without duplicating working capabilities.
+- [x] Build and test one active-scan-derived Command Center view model with defensible risk, exposure, algorithm, migration, recent-scan, and activity analytics.
+- [x] Add contextual dashboard-to-workspace navigation filters that preserve selected risk, algorithm, and evidence context.
+- [x] Redesign the Command Center with compact intake, assessment summary, reusable readiness gauge, accessible KPI cards, and data-derived analytical charts.
+- [x] Add actionable migration candidates, authenticated recent scans or unauthenticated quick actions, activity context, and complete responsive/loading/empty/error treatments.
+- [x] Validate data consistency, run automated and visual regression checks, document the Command Center update, and checkpoint the completed work.
