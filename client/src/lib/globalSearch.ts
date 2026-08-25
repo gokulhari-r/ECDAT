@@ -8,7 +8,7 @@ const navigation: GlobalSearchItem[] = [
   { group: "Navigate", label: "Dependency graph", detail: "Observed relationship intelligence", path: "/graph", value: "dependency graph relationships" },
   { group: "Navigate", label: "PQC guidance", detail: "Generated context-aware recommendations", path: "/recommendations", value: "pqc guidance recommendations" },
   { group: "Navigate", label: "Migration roadmap", detail: "Dependency-aware remediation waves", path: "/roadmap", value: "roadmap migration waves" },
-  { group: "Navigate", label: "Reports & export", detail: "CBOM and executive evidence exports", path: "/reports", value: "reports export cbom" },
+  { group: "Navigate", label: "Evidence & Reports", detail: "Assessment package, evidence chains, and exports", path: "/reports", value: "evidence reports export cbom assessment" },
   { group: "Navigate", label: "Quantum Descent", detail: "Normal and spatial evidence navigation", path: "/descent", value: "quantum descent spatial" },
 ];
 

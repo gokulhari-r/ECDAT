@@ -19,7 +19,7 @@ const menuItems = [
   { icon: GitBranch, label: "Dependency graph", path: "/graph" },
   { icon: ShieldCheck, label: "PQC guidance", path: "/recommendations" },
   { icon: Route, label: "Migration roadmap", path: "/roadmap" },
-  { icon: FileText, label: "Reports & export", path: "/reports" },
+  { icon: FileText, label: "Evidence & Reports", path: "/reports" },
   { icon: Orbit, label: "Quantum Descent", path: "/descent" },
 ];
 

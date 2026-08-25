@@ -13,3 +13,7 @@ export function summarizeIndicativeEffort(waves: EffortWave[]) {
     return { minimum: summary.minimum + range.minimum, maximum: summary.maximum + range.maximum, parsedWaves: summary.parsedWaves + 1 };
   }, { minimum: 0, maximum: 0, parsedWaves: 0 });
 }
+
+export function roadmapFindingFromSearch(search: string) {
+  return new URLSearchParams(search).get("finding");
+}

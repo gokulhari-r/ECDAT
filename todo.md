@@ -107,3 +107,7 @@
 - [x] Re-verify normal graph-node click selection with an explicit SVG hit target, then confirm the blast-radius panel updates without console-dispatched events.
 - [x] Confirm the final Dependency Graph verification record and save the completed graph rebuild checkpoint.
 - [x] Remove scroll-wheel zoom from the Dependency Graph, retain button-based zoom, update interaction guidance, verify behavior, and checkpoint the correction.
+- [x] Review the existing Reports & Export route and extract only scan-backed data needed for the supplied Evidence & Reports assessment-center redesign.
+- [x] Rename the reporting workspace to Evidence & Reports and build the scan-derived assessment package, evidence coverage, readiness, report packages, preview, and provenance sections.
+- [x] Add a traceable evidence chain with observed/derived/estimated/recommended status, and connect valid report actions to Graph, Spatial Mode, Roadmap, and implemented exports.
+- [x] Add tests and responsive browser verification for the Evidence & Reports page, then document and checkpoint the completed redesign.
