@@ -242,3 +242,7 @@ The final SVG interaction refinement adds a transparent hit target around each n
 ### Dependency Graph wheel-zoom removal
 
 At the user’s request, scroll-wheel zoom was removed from the SVG canvas. A dispatched wheel event left the graph transform unchanged at `translate(0 0) scale(1)`. The visible Zoom In, Zoom Out, and Reset View controls remain the sole zoom mechanism; the Zoom In control and Reset View were exercised after the change. Canvas guidance now reads: “Drag to pan · use the zoom controls · Escape clears selection.” TypeScript passed and the full Vitest suite remained at **48 tests**.
+
+### Dependency Graph CBOM redirect removal
+
+The Blast-radius lens no longer exposes **View affected assets** and no longer redirects to CBOM Inventory. After resolving the selected Sovereign Records Portal certificate context, the panel retained only the scan-derived relationship counts, affected observed-entity list, caution statement, and the existing migration-plan action. The panel therefore remains in graph context unless a user explicitly chooses the separate workspace navigation. TypeScript passed and the full Vitest suite remained at **48 tests**.
