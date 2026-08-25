@@ -60,6 +60,7 @@ function findingNodeId(finding: SpatialFinding, graphNodes: ReturnType<typeof bu
 export default function QuantumDescent() {
   const workspace = useActiveEcdatScan();
   const [, setLocation] = useLocation();
+  const requestedFindingKey = useMemo(() => new URLSearchParams(window.location.search).get("finding") ?? undefined, []);
   const { quantumReadiness, displayName, findings, hndlCount, recommendations, relationships, waves, totalAssets, criticalCount, quantumVulnerableCount, usingSavedScan, scanKey } = workspace;
   const [normalLevel, setNormalLevel] = useState(0);
   const [isSpatialMode, setIsSpatialMode] = useState(() => new URLSearchParams(window.location.search).get("spatial") === "1");
@@ -76,6 +77,13 @@ export default function QuantumDescent() {
 
   const clusters = useMemo(() => buildSpatialClusters(findings), [findings]);
   const graphNodes = useMemo(() => buildSpatialGraph(relationships, findings), [relationships, findings]);
+  useEffect(() => {
+    if (!requestedFindingKey || !findings.some(finding => finding.findingKey === requestedFindingKey)) return;
+    setSelectedFindingKey(requestedFindingKey);
+    setNormalLevel(3);
+    const nodeId = findingNodeId(findings.find(finding => finding.findingKey === requestedFindingKey)!, graphNodes);
+    if (nodeId) setSelectedSceneId(nodeId);
+  }, [findings, graphNodes, requestedFindingKey]);
   const selectedCluster = useMemo(() => clusters.find(cluster => cluster.id === selectedClusterId), [clusters, selectedClusterId]);
   const selectedFinding = useMemo(() => findings.find(finding => finding.findingKey === selectedFindingKey) ?? highestRiskFinding(findings), [findings, selectedFindingKey]);
   const selectedFindingNode = useMemo(() => selectedFinding ? findingNodeId(selectedFinding, graphNodes) : undefined, [selectedFinding, graphNodes]);

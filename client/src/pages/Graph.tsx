@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Breadcrumb, EcdatHeader } from "@/components/EcdatHeader";
 import { WorkspaceState } from "@/components/WorkspaceState";
 import { Badge } from "@/components/ui/badge";
@@ -13,10 +13,16 @@ const nodeColors: Record<string, string> = { service: "#67e8f9", endpoint: "#a5f
 export default function Graph() {
   const workspace = useActiveEcdatScan();
   const { relationships, findings } = workspace;
+  const requestedFinding = useMemo(() => new URLSearchParams(window.location.search).get("finding"), []);
   const [selected, setSelected] = useState<string | null>(null);
   const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
   const dragOrigin = useRef<{ x: number; y: number; viewportX: number; viewportY: number } | null>(null);
   const graphNodes = useMemo(() => buildSpatialGraph(relationships, findings), [relationships, findings]);
+  useEffect(() => {
+    if (!requestedFinding) return;
+    const target = graphNodes.find(node => node.findingKeys.includes(requestedFinding));
+    if (target) setSelected(target.id);
+  }, [graphNodes, requestedFinding]);
   const positioned = useMemo(() => buildEvidenceGraphLayout(graphNodes.map(node => ({ id: node.id, kind: node.kind }))), [graphNodes]);
   const positionById = useMemo(() => new Map(positioned.map(node => [node.id, node])), [positioned]);
   const focusedNode = selected ?? graphNodes[0]?.id;

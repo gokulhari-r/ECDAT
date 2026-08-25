@@ -10,8 +10,8 @@ type ActiveScanView = {
   quantumVulnerableCount: number;
   hndlCount: number;
   quantumReadiness: number;
-  findings: Array<{ findingKey: string; assetName: string; algorithm: string; library: string | null; version: string | null; usageContext: string; sourceLocation: string; confidence: number; provenance: string; cryptoRole: string; dataState: string; environment: string; sensitivity: string; criticality: string; classicalRisk: string; quantumRisk: string; dataLifetimeYears: number; migrationMonths: number; quantumVulnerable: boolean; hndlExposure: boolean; riskLevel: string }>;
-  recommendations: Array<{ findingKey: string; title: string; candidate: string; migrationNotes: string; compatibility: string; indicativeEffort: string; indicativeLatency: string; priority: number }>;
+  findings: Array<{ findingKey: string; assetName: string; assetType: string; algorithm: string; library: string | null; version: string | null; usageContext: string; sourceLocation: string; confidence: number; evidence: string; provenance: string; cryptoRole: string; dataState: string; environment: string; sensitivity: string; criticality: string; classicalRisk: string; quantumRisk: string; dataLifetimeYears: number; migrationMonths: number; quantumVulnerable: boolean; hndlExposure: boolean; riskLevel: string }>;
+  recommendations: Array<{ findingKey: string; recommendationType: string; title: string; candidate: string; migrationNotes: string; compatibility: string; indicativeEffort: string; indicativeLatency: string; priority: number }>;
   relationships: Array<{ sourceNode: string; targetNode: string; relationship: string; evidence: string; confidence: number }>;
   waves: Array<{ wave: number; title: string; rationale: string; scope: string; indicativeEffort: string; dependencies: string }>;
   assumptions: unknown[];

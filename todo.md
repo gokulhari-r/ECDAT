@@ -78,3 +78,8 @@
 - [x] Redesign the Command Center with compact intake, assessment summary, reusable readiness gauge, accessible KPI cards, and data-derived analytical charts.
 - [x] Add actionable migration candidates, authenticated recent scans or unauthenticated quick actions, activity context, and complete responsive/loading/empty/error treatments.
 - [x] Validate data consistency, run automated and visual regression checks, document the Command Center update, and checkpoint the completed work.
+- [x] Map the supplied CBOM Inventory design to existing active-scan fields, relationship-derived context, exports, responsive patterns, and working navigation routes.
+- [x] Build and test scan-derived inventory summary stats, URL-backed filter state, column preferences, sorting, pagination, and keyboard navigation.
+- [x] Implement the complete responsive evidence table and a mobile-first asset-card presentation without fabricating source evidence.
+- [x] Implement a tabbed inventory detail drawer with identity, scan-derived risk, blast radius, recommendation, single-asset export, and contextual workspace actions.
+- [x] Add loading, empty, filtered-empty, and error states; complete desktop/mobile/accessibility/data-consistency verification; document and checkpoint the Inventory redesign.
