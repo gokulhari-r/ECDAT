@@ -88,3 +88,5 @@
 - [x] Remove the CBOM Inventory’s right-side slide-in evidence navigation and replace it with an inline full-width detail experience.
 - [x] Preserve clicked-row and `?finding=` evidence selection, tabs, export, filters, and Graph/Descent navigation without any sideways container.
 - [x] Verify the revised CBOM desktop/mobile layouts and selection behavior, document the removal, and checkpoint the correction.
+- [x] Remove the persistent left-side workspace navigation from the CBOM Inventory route while preserving a stable full-width inventory workspace.
+- [x] Provide compact top-level escape navigation for CBOM without restoring the sideways shell, then verify desktop/mobile stability and checkpoint the correction.
