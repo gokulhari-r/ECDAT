@@ -111,3 +111,8 @@ export function buildSingleAssetCbom(input: { displayName: string; finding: Inve
     components: [{ "bom-ref": finding.findingKey, type: finding.assetType.toLowerCase().includes("library") ? "library" : "cryptographic-asset", name: finding.assetName, version: finding.version ?? undefined, properties: [{ name: "ecdat:algorithm", value: finding.algorithm }, { name: "ecdat:role", value: finding.cryptoRole }, { name: "ecdat:library", value: finding.library ?? "Not observed" }, { name: "ecdat:location", value: finding.sourceLocation }, { name: "ecdat:usage-context", value: finding.usageContext }, { name: "ecdat:risk-level", value: finding.riskLevel }, { name: "ecdat:quantum-risk", value: finding.quantumRisk }, { name: "ecdat:confidence", value: `${finding.confidence}%` }, { name: "ecdat:evidence", value: finding.evidence }, { name: "ecdat:provenance", value: finding.provenance }] }],
   };
 }
+
+/** Inventory stays full-width until a row or an explicit `?finding=` link selects evidence. */
+export function inventoryFindingFromSearch(search: string) {
+  return new URLSearchParams(search).get("finding");
+}

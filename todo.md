@@ -85,3 +85,6 @@
 - [x] Add loading, empty, filtered-empty, and error states; complete desktop/mobile/accessibility/data-consistency verification; document and checkpoint the Inventory redesign.
 - [x] Diagnose and correct the unintended right-side container that appears after completing a scan, while preserving saved-scan navigation and evidence context.
 - [x] Verify the post-scan completion flow at desktop and mobile widths, document the layout repair, and checkpoint the fix.
+- [x] Remove the CBOM Inventory’s right-side slide-in evidence navigation and replace it with an inline full-width detail experience.
+- [x] Preserve clicked-row and `?finding=` evidence selection, tabs, export, filters, and Graph/Descent navigation without any sideways container.
+- [x] Verify the revised CBOM desktop/mobile layouts and selection behavior, document the removal, and checkpoint the correction.

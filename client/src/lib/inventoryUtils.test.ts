@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildInventorySummary, buildSingleAssetCbom, filterInventoryFindings, nextInventorySort, sortInventoryFindings, type InventoryFinding } from "./inventoryUtils";
+import { buildInventorySummary, buildSingleAssetCbom, filterInventoryFindings, inventoryFindingFromSearch, nextInventorySort, sortInventoryFindings, type InventoryFinding } from "./inventoryUtils";
 
 const findings: InventoryFinding[] = [
   { findingKey: "rsa", assetName: "Payment TLS", assetType: "Protocol configuration", algorithm: "RSA-2048", cryptoRole: "Key exchange", library: "OpenSSL", version: "3", sourceLocation: "gateway/tls.ts", usageContext: "Payment API", dataState: "In transit", environment: "Production", sensitivity: "Secret", criticality: "Critical", riskLevel: "Critical", classicalRisk: "Medium", quantumRisk: "High", quantumVulnerable: true, hndlExposure: true, dataLifetimeYears: 12, migrationMonths: 6, confidence: 94, evidence: "scanner", provenance: "AST" },
@@ -24,5 +24,9 @@ describe("inventory utilities", () => {
     expect(cbom.components).toHaveLength(1);
     expect(cbom.components[0]).toMatchObject({ "bom-ref": "rsa", name: "Payment TLS" });
     expect(cbom.components[0]?.properties).toContainEqual({ name: "ecdat:evidence", value: "scanner" });
+  });
+  it("does not select an evidence detail panel without an explicit deep link", () => {
+    expect(inventoryFindingFromSearch("?risk=critical")).toBeNull();
+    expect(inventoryFindingFromSearch("?finding=rsa&risk=critical")).toBe("rsa");
   });
 });
