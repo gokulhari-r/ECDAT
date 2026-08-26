@@ -17,8 +17,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Command center", path: "/" },
   { icon: ScanSearch, label: "CBOM inventory", path: "/inventory" },
   { icon: GitBranch, label: "Dependency graph", path: "/graph" },
-  { icon: ShieldCheck, label: "PQC guidance", path: "/recommendations" },
-  { icon: Route, label: "Migration roadmap", path: "/roadmap" },
+  { icon: Route, label: "Migration", path: "/migration" },
   { icon: FileText, label: "Evidence & Reports", path: "/reports" },
   { icon: Orbit, label: "Quantum Descent", path: "/descent" },
 ];

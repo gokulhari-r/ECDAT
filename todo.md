@@ -113,3 +113,10 @@
 - [x] Add tests and responsive browser verification for the Evidence & Reports page, then document and checkpoint the completed redesign.
 - [x] Add a CBOM Explorer HTML download action alongside the existing structured JSON export, then verify and checkpoint it.
 - [x] Confirm the CBOM Explorer visibly presents HTML export beside JSON export in the current deployed Evidence & Reports view.
+- [x] Audit existing recommendations, roadmap, inventory, graph, and route links before consolidating migration workflows.
+- [x] Add tested local migration-plan persistence with duplicate prevention, status progression, progress counts, and graceful storage fallback.
+- [x] Build a unified scan-backed Migration workspace with existing Mosca inputs, progress tracking, priority kanban, sortable PQC recommendations, and a contextual migration simulator.
+- [x] Consolidate navigation to `/migration` while preserving legacy recommendation/roadmap URLs and finding-context links as safe compatibility routes.
+- [x] Add regression coverage and complete desktop/mobile, saved/seeded, empty/error, plan lifecycle, and cross-route verification; document and checkpoint the Migration workspace.
+- [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.
+- [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.

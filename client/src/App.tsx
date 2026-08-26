@@ -6,11 +6,10 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Graph from "./pages/Graph";
 import Home from "./pages/Home";
 import Inventory from "./pages/Inventory";
+import Migration from "./pages/Migration";
 import NotFound from "./pages/NotFound";
 import QuantumDescent from "./pages/QuantumDescent";
-import Recommendations from "./pages/Recommendations";
 import Reports from "./pages/Reports";
-import Roadmap from "./pages/Roadmap";
 import { Route, Switch } from "wouter";
 
 function Router() {
@@ -18,8 +17,9 @@ function Router() {
     <Route path="/" component={Home} />
     <Route path="/inventory" component={Inventory} />
     <Route path="/graph" component={Graph} />
-    <Route path="/recommendations" component={Recommendations} />
-    <Route path="/roadmap" component={Roadmap} />
+    <Route path="/migration" component={Migration} />
+    <Route path="/recommendations" component={Migration} />
+    <Route path="/roadmap" component={Migration} />
     <Route path="/reports" component={Reports} />
     <Route path="/descent" component={QuantumDescent} />
     <Route path="/404" component={NotFound} />

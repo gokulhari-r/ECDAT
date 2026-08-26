@@ -118,7 +118,7 @@ export default function Graph() {
       </section>
 
       <aside className="rounded-3xl border border-white/8 bg-[#091423] p-5">
-        {selectedNode && blast ? <BlastRadiusPanel node={selectedNode} blast={blast} onInventory={() => setLocation(`/inventory${selectedFindingKey ? `?finding=${selectedFindingKey}` : ""}`)} onRoadmap={() => setLocation(`/roadmap${selectedFindingKey ? `?finding=${selectedFindingKey}` : ""}`)} /> : <GraphLegend />}
+        {selectedNode && blast ? <BlastRadiusPanel node={selectedNode} blast={blast} onInventory={() => setLocation(`/inventory${selectedFindingKey ? `?finding=${selectedFindingKey}` : ""}`)} onRoadmap={() => setLocation(`/migration${selectedFindingKey ? `?finding=${selectedFindingKey}` : ""}`)} /> : <GraphLegend />}
       </aside>
     </div>
   </div>;

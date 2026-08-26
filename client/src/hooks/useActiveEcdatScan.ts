@@ -44,24 +44,27 @@ export function useActiveEcdatScan() {
   const forceEmpty = qaState === "empty";
   const forceError = qaState === "error";
   const forceLoading = qaState === "loading";
+  const forcePreview = qaState === "preview";
+  const resolvedActive = forcePreview ? fallback : active;
   return {
     scanKey,
     isAuthenticated,
-    usingSavedScan: Boolean(isAuthenticated && saved),
+    usingSavedScan: Boolean(!forcePreview && isAuthenticated && saved),
+    isForceLoading: forceLoading,
     isLoading: forceLoading || (!forceEmpty && !forceError && (scans.isLoading || detail.isLoading || preview.isLoading)),
     hasError: forceError || Boolean(scans.error || detail.error || preview.error),
     retry: () => Promise.all([scans.refetch(), detail.refetch(), preview.refetch()]),
-    displayName: active?.displayName ?? "Loading scenario",
-    totalAssets: active?.totalAssets ?? 0,
-    criticalCount: active?.criticalCount ?? 0,
-    quantumVulnerableCount: active?.quantumVulnerableCount ?? 0,
-    hndlCount: active?.hndlCount ?? 0,
-    quantumReadiness: active?.quantumReadiness ?? 0,
-    findings: forceEmpty ? [] : active?.findings ?? [],
-    recommendations: forceEmpty ? [] : active?.recommendations ?? [],
-    relationships: forceEmpty ? [] : active?.relationships ?? [],
-    waves: forceEmpty ? [] : active?.waves ?? [],
-    assumptions: active?.assumptions ?? [],
+    displayName: resolvedActive?.displayName ?? "Loading scenario",
+    totalAssets: resolvedActive?.totalAssets ?? 0,
+    criticalCount: resolvedActive?.criticalCount ?? 0,
+    quantumVulnerableCount: resolvedActive?.quantumVulnerableCount ?? 0,
+    hndlCount: resolvedActive?.hndlCount ?? 0,
+    quantumReadiness: resolvedActive?.quantumReadiness ?? 0,
+    findings: forceEmpty ? [] : resolvedActive?.findings ?? [],
+    recommendations: forceEmpty ? [] : resolvedActive?.recommendations ?? [],
+    relationships: forceEmpty ? [] : resolvedActive?.relationships ?? [],
+    waves: forceEmpty ? [] : resolvedActive?.waves ?? [],
+    assumptions: resolvedActive?.assumptions ?? [],
     recentScans: scans.data ?? [],
     detail,
   };
