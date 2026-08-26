@@ -155,3 +155,5 @@
 - [x] Define bold SIH competition-demo tokens, presentation hierarchy, motion, and proof-oriented visual motifs without fabricating evidence or capabilities.
 - [x] Redesign shared navigation, headers, panels, analytical states, and Lab framing for a bold SIH competition-demo presentation while retaining every workflow.
 - [x] Verify the full competition-demo UI at desktop/mobile widths, with accessibility and TypeScript/Vitest regression checks; document and checkpoint the work.
+- [x] Remove every visible SIH, problem-statement, judge-demo, and demo-ready reference from the ECDAT UI.
+- [x] Verify the cleaned visual framing, regression coverage, and release the removal as a focused checkpoint.
