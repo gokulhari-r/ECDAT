@@ -129,4 +129,8 @@
 - [x] Rebuild the selected-asset drawer as an Asset Intelligence Drawer with distinct observed evidence, derived assessment/relationships, and recommended migration sections.
 - [x] Preserve and verify focused handoffs from the Asset Intelligence Drawer to Evidence & Reports, Dependency Graph, and Migration without duplicating those modules.
 - [x] Add tests and verify saved, seeded, loading, empty, error, desktop, and mobile CBOM states; document and checkpoint the CBOM evolution.
+- [x] Audit the Command Center scenario-run lifecycle and existing completion states before adding scanner progress.
+- [x] Build an accessible, responsive scanner-progress component with explicitly simulated scanner stages, discovery updates, and completion treatment.
+- [x] Integrate the scanner-progress component into the persisted Command Center scenario workflow without altering scan data contracts or post-scan routing.
+- [x] Add regression coverage and verify scanner progress, completion, desktop/mobile, and error behavior; document and checkpoint the update.
 - [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.
