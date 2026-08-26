@@ -1,14 +1,17 @@
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandShortcut } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useActiveEcdatScan } from "@/hooks/useActiveEcdatScan";
 import { buildGlobalSearchItems } from "@/lib/globalSearch";
-import { Bell, Compass, FileText, FlaskConical, GitBranch, LayoutDashboard, LogOut, Moon, Route, ScanSearch, Search, ShieldAlert, ShieldCheck, Sun } from "lucide-react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Bell, Compass, ExternalLink, FileText, FlaskConical, GitBranch, LayoutDashboard, LogOut, Moon, Route, ScanSearch, Search, ShieldAlert, ShieldCheck, Sun } from "lucide-react";
+import { openDemoLab } from "@/lib/labLaunch";
 import { useLocation } from "wouter";
 
 const menuItems = [
@@ -19,7 +22,7 @@ const menuItems = [
   { icon: FileText, label: "Evidence & Reports", path: "/reports" },
 ];
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout, loading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const workspace = useActiveEcdatScan();
@@ -30,65 +33,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const searchItems = useMemo(() => buildGlobalSearchItems(workspace.findings, workspace.recommendations), [workspace.findings, workspace.recommendations]);
   const notifications = useMemo(() => workspace.findings.filter(finding => finding.hndlExposure || finding.riskLevel === "Critical").slice(0, 4), [workspace.findings]);
   const baseLocation = location.split("?")[0];
-
+  useEffect(() => { const onKeyDown = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(true); } }; window.addEventListener("keydown", onKeyDown); return () => window.removeEventListener("keydown", onKeyDown); }, []);
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setSearchOpen(true);
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  useEffect(() => {
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const initialized = sessionStorage.getItem("ecdat-workspace-initialized") === "1";
-    const timer = window.setTimeout(() => {
-      sessionStorage.setItem("ecdat-workspace-initialized", "1");
-      setInitializing(false);
-    }, reducedMotion || initialized ? 0 : 520);
+    const qaReducedMotion = import.meta.env.DEV && new URLSearchParams(window.location.search).get("qaReduced") === "1";
+    const reducedMotion = qaReducedMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const hasInitialized = sessionStorage.getItem("ecdat-workspace-initialized") === "1";
+    const qaBootPreview = import.meta.env.DEV && new URLSearchParams(window.location.search).get("qaBoot") === "1";
+    const timer = window.setTimeout(() => { sessionStorage.setItem("ecdat-workspace-initialized", "1"); setInitializing(false); }, qaBootPreview && !reducedMotion && !hasInitialized ? 2200 : reducedMotion || hasInitialized ? 0 : 520);
     return () => window.clearTimeout(timer);
   }, []);
+  const navigate = (path: string) => { setLocation(path); setSearchOpen(false); setNotificationOpen(false); };
 
-  const navigate = (path: string) => {
-    setLocation(path);
-    setSearchOpen(false);
-    setNotificationOpen(false);
-  };
-
-  return <>
-    <div className="academy-app-shell">
-      <header className="academy-site-header">
-        <div className="academy-header-inner">
-          <button type="button" onClick={() => navigate("/")} className="academy-brand" aria-label="Go to Command Center">
-            <span className="academy-brand-mark"><Compass className="h-5 w-5" strokeWidth={2.6} /></span>
-            <span><span className="academy-brand-name">ECDAT</span><span className="academy-brand-subtitle">Crypto intelligence</span></span>
-          </button>
-          <nav className="academy-nav" aria-label="ECDAT workspace">
-            {menuItems.map(item => <button type="button" key={item.path} onClick={() => navigate(item.path)} data-active={baseLocation === item.path} className="academy-nav-item"><item.icon className="mr-1.5 inline h-3.5 w-3.5" />{item.label}</button>)}
-          </nav>
-          <div className="academy-header-tools">
-            <button type="button" className="academy-tool-button" onClick={() => setSearchOpen(true)} aria-label="Search workspace"><Search className="h-4 w-4" /></button>
-            <button type="button" className="academy-tool-button" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}>{theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</button>
-            <button type="button" className="academy-tool-button relative" onClick={() => setNotificationOpen(true)} aria-label="Open active risk notifications"><Bell className="h-4 w-4" />{notifications.length ? <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#f9004d] px-1 text-[9px] font-bold text-white">{notifications.length}</span> : null}</button>
-            {loading ? <span className="academy-tool-button animate-pulse" /> : user ? <div className="academy-user"><Avatar className="h-9 w-9 border border-white/10"><AvatarFallback className="bg-[#191c1f] text-xs font-bold text-white">{user.name?.slice(0, 1).toUpperCase() ?? "E"}</AvatarFallback></Avatar><div className="academy-user-copy"><strong>{user.name ?? "ECDAT user"}</strong><span>Protected history</span></div><button type="button" onClick={logout} className="academy-tool-button" aria-label="Sign out"><LogOut className="h-4 w-4" /></button></div> : <Button onClick={() => startLogin()} className="academy-tool-button academy-tool-button--accent"><ShieldCheck className="mr-2 h-4 w-4" />Sign in</Button>}
-          </div>
-        </div>
-      </header>
-      <main className="academy-workspace">{children}</main>
-    </div>
-
-    <CommandDialog open={searchOpen} onOpenChange={setSearchOpen} title="Search ECDAT workspace" description="Search routes, observed scan evidence, and generated guidance." className="max-w-2xl border-[#212529] bg-[#191c1f] text-white">
-      <CommandInput placeholder="Search routes, evidence, or migration guidance…" />
-      <CommandList><CommandEmpty className="text-[#9f9f9f]">No workspace result found.</CommandEmpty>{(["Navigate", "Observed evidence", "Generated guidance"] as const).map(group => {
-        const items = searchItems.filter(item => item.group === group);
-        return items.length ? <CommandGroup key={group} heading={group}>{items.map(item => <CommandItem key={`${item.group}-${item.path}-${item.label}`} value={item.value} onSelect={() => navigate(item.path)} className="text-[#dee2e6] data-[selected=true]:bg-[#f9004d]/15 data-[selected=true]:text-white"><Search className="h-3.5 w-3.5 text-[#f9004d]" /><span className="min-w-0"><span className="block truncate text-xs font-medium">{item.label}</span><span className="mt-0.5 block truncate text-[10px] text-[#9f9f9f]">{item.detail}</span></span>{item.group === "Navigate" ? <CommandShortcut>GO</CommandShortcut> : null}</CommandItem>)}</CommandGroup> : null;
-      })}</CommandList>
-    </CommandDialog>
-
-    <Dialog open={notificationOpen} onOpenChange={setNotificationOpen}><DialogContent className="max-w-md border-[#212529] bg-[#191c1f] text-white"><DialogHeader><DialogTitle className="flex items-center gap-2"><Bell className="h-4 w-4 text-[#f9004d]" />Active risk signals</DialogTitle><DialogDescription className="text-[#9f9f9f]">Derived from the current scan’s critical or HNDL-qualified findings.</DialogDescription></DialogHeader><div className="space-y-2">{notifications.length ? notifications.map(finding => <button type="button" key={finding.findingKey} onClick={() => navigate(`/inventory?finding=${encodeURIComponent(finding.findingKey)}`)} className="w-full rounded-md border border-[#212529] bg-black p-3 text-left hover:border-[#f9004d] hover:bg-[#f9004d]/[.07]"><div className="flex items-start gap-3"><ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-[#fc4c1f]" /><span><span className="block text-sm font-medium text-white">{finding.assetName}</span><span className="mt-1 block text-xs text-[#9f9f9f]">{finding.algorithm} · {finding.riskLevel} risk{finding.hndlExposure ? " · potential HNDL" : ""}</span></span></div></button>) : <p className="rounded-md border border-[#212529] bg-black p-4 text-sm text-[#9f9f9f]">No critical or HNDL-qualified signals are present in the active scan.</p>}</div></DialogContent></Dialog>
-    {initializing ? <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[80] grid place-items-center bg-black/95"><div className="flex flex-col items-center"><span className="grid h-14 w-14 place-items-center rounded-md bg-[#f9004d] text-white"><Compass className="h-6 w-6" /></span><p className="mt-4 font-display text-2xl font-bold tracking-[.08em] text-white">ECDAT</p><p className="mt-1 text-[11px] font-bold uppercase tracking-[.2em] text-[#f9004d]">Cryptographic intelligence</p><span className="mt-5 h-1 w-28 overflow-hidden rounded-full bg-white/10"><span className="block h-full w-2/3 rounded-full bg-[#f9004d]" /></span></div></div> : null}
-  </>;
+  return <SidebarProvider defaultOpen><Sidebar collapsible="icon" className="border-r border-white/8 bg-[#08111f] text-slate-100"><SidebarHeader className="h-[84px] border-b border-white/8 px-3 py-4"><button onClick={() => navigate("/")} className="flex w-full items-center gap-3 text-left"><span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan-300 via-teal-300 to-emerald-400 text-[#062132] shadow-[0_0_30px_rgba(45,212,191,0.25)]"><Compass className="h-5 w-5" strokeWidth={2.6} /></span><span className="group-data-[collapsible=icon]:hidden"><span className="block font-display text-lg font-semibold tracking-[-0.03em]">ECDAT</span><span className="block text-[10px] font-medium uppercase tracking-[0.18em] text-cyan-200/55">Quantum observatory</span></span></button></SidebarHeader><SidebarContent className="px-2 py-4"><div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500 group-data-[collapsible=icon]:hidden">Intelligence workspace</div><Button onClick={() => setSearchOpen(true)} variant="outline" className="mb-3 w-full justify-start border-white/10 bg-white/[0.025] text-slate-400 hover:bg-white/[0.06] hover:text-slate-100"><Search className="h-4 w-4" /><span className="group-data-[collapsible=icon]:hidden">Search workspace</span><kbd className="ml-auto hidden rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-slate-500 group-data-[collapsible=icon]:inline">⌘K</kbd></Button><SidebarMenu>{menuItems.map(item => <SidebarMenuItem key={item.path}><SidebarMenuButton isActive={baseLocation === item.path} onClick={() => navigate(item.path)} tooltip={item.label} className="h-10 rounded-lg text-slate-400 hover:bg-white/6 hover:text-white data-[active=true]:bg-cyan-300/10 data-[active=true]:text-cyan-100"><item.icon className="h-4 w-4" /><span>{item.label}</span></SidebarMenuButton></SidebarMenuItem>)}</SidebarMenu><div className="my-4 border-t border-white/[0.08]" /><SidebarMenu><SidebarMenuItem><SidebarMenuButton onClick={openDemoLab} tooltip="Open Remediation Lab in a new tab" className="h-10 rounded-lg text-cyan-100/75 hover:bg-cyan-300/10 hover:text-cyan-100"><FlaskConical className="h-4 w-4" /><span>Remediation Lab</span><ExternalLink className="ml-auto h-3 w-3 opacity-60 group-data-[collapsible=icon]:hidden" /></SidebarMenuButton></SidebarMenuItem></SidebarMenu></SidebarContent><SidebarFooter className="border-t border-white/8 p-3"><div className="mb-3 flex gap-2"><Button onClick={toggleTheme} variant="outline" className="flex-1 border-cyan-300/20 bg-cyan-300/5 text-cyan-100 hover:bg-cyan-300/10" aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}><span className="grid h-4 w-4 place-items-center">{theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}</span><span className="group-data-[collapsible=icon]:hidden">{theme === "dark" ? "Light theme" : "Dark theme"}</span></Button><Button onClick={() => setNotificationOpen(true)} variant="outline" size="icon" className="relative border-white/10 bg-white/[0.025] text-slate-300 hover:bg-white/[0.06]" aria-label="Open active risk notifications"><Bell className="h-4 w-4" />{notifications.length ? <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-300 px-1 text-[9px] font-bold text-[#300c16]">{notifications.length}</span> : null}</Button></div>{loading ? <div className="h-9 animate-pulse rounded-lg bg-white/5" /> : user ? <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center"><Avatar className="h-8 w-8 border border-cyan-100/15"><AvatarFallback className="bg-cyan-200 text-xs font-bold text-[#062132]">{user.name?.slice(0, 1).toUpperCase() ?? "E"}</AvatarFallback></Avatar><div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden"><p className="truncate text-xs font-medium text-slate-200">{user.name ?? "ECDAT user"}</p><p className="truncate text-[11px] text-slate-500">Protected scan history</p></div><button onClick={logout} className="text-slate-500 transition hover:text-slate-200 group-data-[collapsible=icon]:hidden" aria-label="Sign out"><LogOut className="h-4 w-4" /></button></div> : <Button onClick={() => startLogin()} variant="outline" className="w-full border-cyan-300/20 bg-cyan-300/5 text-cyan-100 hover:bg-cyan-300/10"><ShieldCheck className="h-4 w-4" /><span className="group-data-[collapsible=icon]:hidden">Sign in to save</span></Button>}</SidebarFooter></Sidebar><SidebarInset className="min-h-screen bg-[#06101c] text-slate-100"><header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-white/8 bg-[#08111f]/90 px-3 md:hidden"><div className="flex items-center gap-3"><SidebarTrigger /><span className="font-display font-semibold">ECDAT</span></div><div className="flex items-center gap-2"><Button onClick={() => setSearchOpen(true)} variant="outline" size="icon" className="h-8 w-8 border-white/10 bg-white/[0.025] text-slate-300" aria-label="Search workspace"><Search className="h-3.5 w-3.5" /></Button><Button onClick={toggleTheme} variant="outline" size="icon" className="h-8 w-8 border-cyan-300/25 bg-cyan-300/5 text-cyan-100" aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}>{theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}</Button></div></header><main className="min-h-screen p-4 md:p-7 lg:p-9">{children}</main></SidebarInset>
+    <CommandDialog open={searchOpen} onOpenChange={setSearchOpen} title="Search ECDAT workspace" description="Search routes, observed scan evidence, and generated guidance." className="max-w-2xl border-white/10 bg-[#08111f] text-slate-100"><CommandInput placeholder="Search routes, evidence, or PQC guidance…" /><CommandList><CommandEmpty className="text-slate-500">No workspace result found.</CommandEmpty>{(["Navigate", "Observed evidence", "Generated guidance"] as const).map(group => { const items = searchItems.filter(item => item.group === group); return items.length ? <CommandGroup key={group} heading={group}>{items.map(item => <CommandItem key={`${item.group}-${item.path}-${item.label}`} value={item.value} onSelect={() => navigate(item.path)} className="text-slate-300 data-[selected=true]:bg-cyan-300/10 data-[selected=true]:text-cyan-100"><Search className="h-3.5 w-3.5 text-cyan-200/70" /><span className="min-w-0"><span className="block truncate text-xs font-medium">{item.label}</span><span className="mt-0.5 block truncate text-[10px] text-slate-500">{item.detail}</span></span>{item.group === "Navigate" ? <CommandShortcut>GO</CommandShortcut> : null}</CommandItem>)}</CommandGroup> : null; })}</CommandList></CommandDialog>
+    <Dialog open={notificationOpen} onOpenChange={setNotificationOpen}><DialogContent className="max-w-md border-white/10 bg-[#08111f] text-slate-100"><DialogHeader><DialogTitle className="flex items-center gap-2"><Bell className="h-4 w-4 text-rose-200" />Active risk signals</DialogTitle><DialogDescription className="text-slate-500">Derived from the current scan’s critical or HNDL-qualified findings.</DialogDescription></DialogHeader><div className="space-y-2">{notifications.length ? notifications.map(finding => <button type="button" key={finding.findingKey} onClick={() => navigate(`/inventory?finding=${encodeURIComponent(finding.findingKey)}`)} className="w-full rounded-xl border border-white/8 bg-white/[0.025] p-3 text-left hover:border-cyan-200/20 hover:bg-cyan-300/[0.04]"><div className="flex items-start gap-3"><ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-rose-200" /><span><span className="block text-sm font-medium text-slate-100">{finding.assetName}</span><span className="mt-1 block text-xs text-slate-500">{finding.algorithm} · {finding.riskLevel} risk{finding.hndlExposure ? " · potential HNDL" : ""}</span></span></div></button>) : <p className="rounded-xl border border-white/8 bg-white/[0.025] p-4 text-sm text-slate-500">No critical or HNDL-qualified signals are present in the active scan.</p>}</div></DialogContent></Dialog>{initializing ? <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[80] grid place-items-center bg-[#06101c]/92 transition-opacity duration-300"><div className="flex flex-col items-center"><span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300 via-teal-300 to-emerald-400 text-[#062132] shadow-[0_0_42px_rgba(45,212,191,0.28)]"><Compass className="h-6 w-6" /></span><p className="mt-4 font-display text-sm font-semibold tracking-[0.12em] text-slate-100">ECDAT</p><p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-cyan-200/70">Quantum observatory</p><span className="mt-5 h-1 w-28 overflow-hidden rounded-full bg-white/10"><span className="block h-full w-2/3 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" /></span><p className="mt-3 text-[11px] text-slate-500">Resolving the intelligence workspace</p></div></div> : null}</SidebarProvider>;
 }
