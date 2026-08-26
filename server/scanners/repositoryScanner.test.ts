@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { strToU8, zipSync } from "fflate";
 import { analyzeRepositoryFiles, parsePublicGitHubRepository, scanPublicGitHubRepository } from "./repositoryScanner";
 
 const repository = parsePublicGitHubRepository("https://github.com/example/crypto-service");
@@ -28,14 +29,26 @@ describe("repository scanner MVP", () => {
     const requests: string[] = [];
     const fetcher = async (url: string) => {
       requests.push(url);
-      if (url.includes("/repos/example/crypto-service") && !url.includes("/git/trees/")) return { ok: true, status: 200, json: async () => ({ default_branch: "main" }), text: async () => "" };
-      if (url.includes("/git/trees/")) return { ok: true, status: 200, json: async () => ({ tree: [{ path: "src/main.go", type: "blob", size: 80 }, { path: "node_modules/x.js", type: "blob", size: 12 }] }), text: async () => "" };
-      return { ok: true, status: 200, json: async () => ({}), text: async () => "package main\nfunc main() { aes.NewCipher(key) }" };
+      if (url.includes("/repos/example/crypto-service") && !url.includes("/git/trees/")) return { ok: true, status: 200, json: async () => ({ default_branch: "main" }), text: async () => "", arrayBuffer: async () => new ArrayBuffer(0) };
+      if (url.includes("/git/trees/")) return { ok: true, status: 200, json: async () => ({ tree: [{ path: "src/main.go", type: "blob", size: 80 }, { path: "node_modules/x.js", type: "blob", size: 12 }] }), text: async () => "", arrayBuffer: async () => new ArrayBuffer(0) };
+      return { ok: true, status: 200, json: async () => ({}), text: async () => "package main\nfunc main() { aes.NewCipher(key) }", arrayBuffer: async () => new ArrayBuffer(0) };
     };
     const result = await scanPublicGitHubRepository("https://github.com/example/crypto-service", fetcher);
     expect(result.scannedFileCount).toBe(1);
     expect(result.findings[0]?.algorithm).toBe("AES");
     expect(requests).toHaveLength(3);
     expect(requests.some(request => request.includes("git clone"))).toBe(false);
+  });
+
+  it("falls back to a bounded GitHub archive when metadata is rate limited", async () => {
+    const archive = zipSync({ "crypto-service-main/src/main.go": strToU8("package main\nfunc main() { aes.NewCipher(key) }") });
+    const fetcher = async (url: string) => {
+      if (url.startsWith("https://api.github.com/")) return { ok: false, status: 403, headers: { "x-ratelimit-remaining": "0", "x-ratelimit-reset": "1787754000" }, json: async () => ({}), text: async () => "rate limited", arrayBuffer: async () => new ArrayBuffer(0) };
+      if (url === "https://github.com/example/crypto-service") return { ok: true, status: 200, json: async () => ({}), text: async () => '<script type="application/json">{"defaultBranch":"main"}</script>', arrayBuffer: async () => new ArrayBuffer(0) };
+      return { ok: true, status: 200, json: async () => ({}), text: async () => "", arrayBuffer: async () => archive.buffer.slice(archive.byteOffset, archive.byteOffset + archive.byteLength) };
+    };
+    const result = await scanPublicGitHubRepository("https://github.com/example/crypto-service", fetcher);
+    expect(result.branch).toBe("main");
+    expect(result.findings[0]?.algorithm).toBe("AES");
   });
 });

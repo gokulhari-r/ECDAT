@@ -358,3 +358,19 @@ ECDAT now supports a bounded static-analysis path for a validated public GitHub 
 The initial rules detect selected RSA, ECDSA, AES, and AES-GCM usage patterns. Findings retain a file-and-line source location, a static-analysis provenance statement, explicit "not inferred" business-data fields, and evidence stating that the source was not executed. Protected `ecdat.scanRepository` persists results through the existing scan, CBOM, relationship, recommendation, wave, and export contracts under the truthful `repository-static` source value, while the deterministic scenario path remains available.
 
 Local fixture tests cover URL restrictions, pattern detection, bounded GitHub request flow, no-clone behavior, and transactional persistence. The managed database enum was inspected after migration. Command Center rendering confirmed the new public-repository explanation and retained scenario control. TypeScript passed and Vitest completed **71 tests across twenty-five files**.
+
+### Repository metadata 403 diagnostic source
+
+GitHub documents that unauthenticated REST requests are limited to sixty requests per hour per originating IP address, and that a primary or secondary rate limit can return `403` or `429`. Primary-limit responses expose `x-ratelimit-remaining` and `x-ratelimit-reset`; secondary-limit responses may expose `retry-after`. The repository-scanner recovery work therefore treats a metadata `403` as a rate-limit/access condition and must not retry it blindly. [1] [2]
+
+## Repository metadata 403 recovery
+
+Repository analysis no longer fails immediately when the GitHub metadata endpoint responds with `403` or `429`. The scanner first reads the rate-limit headers and then safely attempts a bounded GitHub source archive fallback. The fallback reads the public repository page to identify the default branch where available, tries only that branch plus `main` and `master`, downloads no more than 3 MB, streams allowed source files only, and continues to enforce the 40-file, 120 KB per-file, and 600 KB total-content limits. It still never clones, builds, installs, or executes repository content.
+
+When both the metadata request and bounded fallback are unavailable, Command Center now displays the server’s retry guidance rather than the opaque HTTP response. The path has fixture coverage for metadata `403` recovery through an archive, alongside the existing URL and no-clone controls. TypeScript passed and Vitest completed **72 tests across twenty-five files**.
+
+## References
+
+[1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
+
+[2] [GitHub REST API troubleshooting](https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api)

@@ -1,9 +1,11 @@
 import { type SeedFinding } from "../ecdatSeed";
 import { evaluateFindingRisk } from "../ecdatRisk";
+import { Unzip, UnzipInflate } from "fflate";
 
 const MAX_FILES = 40;
 const MAX_FILE_BYTES = 120_000;
 const MAX_TOTAL_BYTES = 600_000;
+const MAX_ARCHIVE_BYTES = 3_000_000;
 const ALLOWED_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".java", ".go"]);
 const EXCLUDED_PATH_SEGMENTS = new Set([".git", "node_modules", "vendor", "dist", "build", "coverage"]);
 
@@ -48,22 +50,27 @@ const STATIC_RULES: StaticRule[] = [
   { id: "go-ecdsa", extensions: [".go"], expression: /ecdsa\.(?:GenerateKey|Sign|Verify)/, algorithm: "ECDSA", cryptoRole: "Signature", library: "Go crypto", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Go ECDSA operation detected" },
 ];
 
-export class RepositoryScanError extends Error {}
+export class RepositoryScanError extends Error {
+  constructor(message: string, readonly code: "input" | "rate-limit" | "access" | "response" = "response") {
+    super(message);
+    this.name = "RepositoryScanError";
+  }
+}
 
 export function parsePublicGitHubRepository(input: string): PublicGitHubRepository {
   let url: URL;
   try {
     url = new URL(input.trim());
   } catch {
-    throw new RepositoryScanError("Enter a valid public GitHub repository URL.");
+    throw new RepositoryScanError("Enter a valid public GitHub repository URL.", "input");
   }
   if (url.protocol !== "https:" || url.hostname.toLowerCase() !== "github.com" || url.username || url.password || url.port) {
-    throw new RepositoryScanError("Only standard HTTPS public GitHub repository URLs are supported by this MVP.");
+    throw new RepositoryScanError("Only standard HTTPS public GitHub repository URLs are supported by this MVP.", "input");
   }
   const [owner, rawRepository, ...rest] = url.pathname.split("/").filter(Boolean);
   const repository = rawRepository?.replace(/\.git$/i, "");
   if (!owner || !repository || rest.length || !/^[A-Za-z0-9_.-]+$/.test(owner) || !/^[A-Za-z0-9_.-]+$/.test(repository)) {
-    throw new RepositoryScanError("Use a repository root URL in the form https://github.com/owner/repository.");
+    throw new RepositoryScanError("Use a repository root URL in the form https://github.com/owner/repository.", "input");
   }
   return { owner, repository, canonicalUrl: `https://github.com/${owner}/${repository}` };
 }
@@ -138,12 +145,32 @@ export function analyzeRepositoryFiles(repository: PublicGitHubRepository, branc
   return findings;
 }
 
-type FetchResponse = { ok: boolean; status: number; json: () => Promise<unknown>; text: () => Promise<string> };
+type FetchHeaders = { get: (name: string) => string | null } | Record<string, string | undefined>;
+type FetchResponse = { ok: boolean; status: number; headers?: FetchHeaders; json: () => Promise<unknown>; text: () => Promise<string>; arrayBuffer: () => Promise<ArrayBuffer> };
 type Fetcher = (url: string, init?: RequestInit) => Promise<FetchResponse>;
+
+function getHeader(response: FetchResponse, name: string) {
+  const headers = response.headers;
+  if (!headers) return undefined;
+  if (typeof (headers as { get?: unknown }).get === "function") return (headers as { get: (key: string) => string | null }).get(name) ?? undefined;
+  const record = headers as Record<string, string | undefined>;
+  return record[name.toLowerCase()] ?? record[name];
+}
+
+function rateLimitMessage(response: FetchResponse) {
+  const retryAfter = getHeader(response, "retry-after");
+  const reset = getHeader(response, "x-ratelimit-reset");
+  if (retryAfter) return `GitHub is temporarily limiting repository analysis. Wait about ${retryAfter} seconds, then retry.`;
+  if (reset && Number.isFinite(Number(reset))) return `GitHub is temporarily limiting repository analysis. Retry after ${new Date(Number(reset) * 1000).toLocaleTimeString()}.`;
+  return "GitHub is temporarily limiting repository analysis from this service. Wait a few minutes, then retry.";
+}
 
 async function fetchJson<T>(url: string, fetcher: Fetcher): Promise<T> {
   const response = await fetcher(url, { headers: { Accept: "application/vnd.github+json", "User-Agent": "ECDAT-static-scanner" } });
-  if (!response.ok) throw new RepositoryScanError(`GitHub repository metadata could not be read (HTTP ${response.status}).`);
+  if (!response.ok) {
+    if (response.status === 403 || response.status === 429) throw new RepositoryScanError(rateLimitMessage(response), "rate-limit");
+    throw new RepositoryScanError(`GitHub repository metadata could not be read (HTTP ${response.status}).`, "access");
+  }
   return response.json() as Promise<T>;
 }
 
@@ -154,9 +181,78 @@ async function fetchSourceText(url: string, fetcher: Fetcher) {
   return content.length <= MAX_FILE_BYTES ? content : undefined;
 }
 
+function joinChunks(chunks: Uint8Array[], size: number) {
+  const joined = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    joined.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return joined;
+}
+
+function extractArchiveSourceFiles(archive: Uint8Array) {
+  const files: RepositorySourceFile[] = [];
+  let uncompressedBytes = 0;
+  let extractionError: Error | undefined;
+  const unzip = new Unzip(file => {
+    const path = file.name.replace(/^[^/]+\//, "");
+    const expectedBytes = file.originalSize ?? 0;
+    if (files.length >= MAX_FILES || !isAllowedSourcePath(path, expectedBytes) || expectedBytes > MAX_FILE_BYTES || uncompressedBytes + expectedBytes > MAX_TOTAL_BYTES) return;
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    file.ondata = (error, data, final) => {
+      if (error) { extractionError = error; return; }
+      size += data.length;
+      if (size > MAX_FILE_BYTES || uncompressedBytes + size > MAX_TOTAL_BYTES) { extractionError = new RepositoryScanError("Repository archive exceeded static-analysis limits."); return; }
+      chunks.push(data);
+      if (final) {
+        uncompressedBytes += size;
+        files.push({ path, content: new TextDecoder().decode(joinChunks(chunks, size)) });
+      }
+    };
+    file.start();
+  });
+  unzip.register(UnzipInflate);
+  unzip.push(archive, true);
+  if (extractionError) throw extractionError;
+  return files;
+}
+
+async function readDefaultBranchFromRepositoryPage(repository: PublicGitHubRepository, fetcher: Fetcher) {
+  const response = await fetcher(repository.canonicalUrl, { headers: { Accept: "text/html", "User-Agent": "ECDAT-static-scanner" } });
+  if (!response.ok) return undefined;
+  const page = await response.text();
+  const branch = page.match(/"defaultBranch"\s*:\s*"([A-Za-z0-9._/-]+)"/)?.[1] ?? page.match(/data-default-branch="([A-Za-z0-9._/-]+)"/)?.[1];
+  return branch && /^[A-Za-z0-9._/-]+$/.test(branch) ? branch : undefined;
+}
+
+async function scanArchiveFallback(repository: PublicGitHubRepository, fetcher: Fetcher): Promise<RepositoryScanResult | undefined> {
+  const defaultBranch = await readDefaultBranchFromRepositoryPage(repository, fetcher);
+  const candidates = Array.from(new Set([defaultBranch, "main", "master"].filter((branch): branch is string => Boolean(branch))));
+  for (const branch of candidates) {
+    const archiveResponse = await fetcher(`https://codeload.github.com/${repository.owner}/${repository.repository}/zip/refs/heads/${encodeURIComponent(branch)}`, { headers: { Accept: "application/zip", "User-Agent": "ECDAT-static-scanner" } });
+    if (!archiveResponse.ok) continue;
+    const archive = new Uint8Array(await archiveResponse.arrayBuffer());
+    if (archive.length > MAX_ARCHIVE_BYTES) throw new RepositoryScanError("Repository archive exceeded the 3 MB static-analysis download limit.");
+    const files = extractArchiveSourceFiles(archive);
+    return { repository, branch, findings: analyzeRepositoryFiles(repository, branch, files), scannedFileCount: files.length, skippedFileCount: 0 };
+  }
+  return undefined;
+}
+
 export async function scanPublicGitHubRepository(repositoryUrl: string, fetcher: Fetcher = fetch): Promise<RepositoryScanResult> {
   const repository = parsePublicGitHubRepository(repositoryUrl);
-  const metadata = await fetchJson<{ default_branch?: string }>(`https://api.github.com/repos/${repository.owner}/${repository.repository}`, fetcher);
+  let metadata: { default_branch?: string };
+  try {
+    metadata = await fetchJson<{ default_branch?: string }>(`https://api.github.com/repos/${repository.owner}/${repository.repository}`, fetcher);
+  } catch (error) {
+    if (error instanceof RepositoryScanError && error.code === "rate-limit") {
+      const fallback = await scanArchiveFallback(repository, fetcher);
+      if (fallback) return fallback;
+    }
+    throw error;
+  }
   const branch = metadata.default_branch;
   if (!branch || !/^[A-Za-z0-9._/-]+$/.test(branch)) throw new RepositoryScanError("The public repository did not provide a valid default branch.");
   const tree = await fetchJson<{ tree?: Array<{ path?: string; type?: string; size?: number }> }>(`https://api.github.com/repos/${repository.owner}/${repository.repository}/git/trees/${encodeURIComponent(branch)}?recursive=1`, fetcher);

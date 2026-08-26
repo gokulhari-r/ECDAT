@@ -168,3 +168,5 @@
 - [x] Define a safe static repository-scanner MVP with URL validation, bounded repository acquisition, allowlisted text analysis, and no execution of cloned content.
 - [x] Implement static cryptographic pattern detection against a local repository fixture and convert detections into evidence-backed ECDAT findings.
 - [x] Integrate the repository-scanner MVP into the existing scan flow without replacing seeded scenarios, then verify security controls, persistence, TypeScript, and Vitest.
+- [x] Diagnose and fix the public GitHub repository-analysis metadata request failure when GitHub returns HTTP 403.
+- [x] Add resilient metadata acquisition, user-facing recovery guidance, and regression coverage without weakening repository URL safeguards.
