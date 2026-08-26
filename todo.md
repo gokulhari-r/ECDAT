@@ -143,4 +143,6 @@
 - [x] Apply the supplied visual system across Command Center, CBOM, Dependency Graph, Migration, Evidence & Reports, and the standalone Remediation Lab.
 - [x] Add regression coverage and verify desktop/mobile visual fidelity, active data states, and accessible interactions; document and checkpoint the design-system implementation.
 - [x] Preserve all current ECDAT interactions while applying a cohesive dark-intelligence visual overhaul based on the supplied archive’s base tokens.
+- [x] Compare the supplied archive’s exact color tokens against the current derived observatory overrides and replace the mismatched palette values.
+- [x] Verify the corrected archive palette across dark/light, desktop/mobile, and key analytical workspaces without changing functionality; document and checkpoint the correction.
 - [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.
