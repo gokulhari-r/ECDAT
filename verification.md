@@ -314,3 +314,9 @@ The Command Center, CBOM Asset Intelligence Drawer, Dependency Graph, Migration 
 ### Exact archive palette correction
 
 The observatory overrides were corrected to use the supplied archive’s actual base palette rather than derived substitutes: `#06101c` ink, `#091423` panel, `#08111f` raised surface, `#67e8f9` signal cyan, `#c4b5fd` violet, and `#fde68a` amber. The primary and panel gradients now blend only these source-palette values and their opacity variants. A light-theme pass adds the archive’s `#edf4f7` and `#f8fbfc` surfaces with `#11243a` readable foreground, so the observatory header and panels no longer retain a dark-only surface when light mode is selected. Dark and light Command Center rendering were checked, then the default dark selection was restored. TypeScript passed and the full Vitest suite remained at **66 tests**.
+
+### Live CodeHunters SIH reference palette correction
+
+The live [CodeHunters SIH 2026 Problem Statements Explorer](https://www.codehuntersacademy.com/sih-2026-ps) was inspected directly before this correction. ECDAT now uses its actual charcoal and orange token set: `#060606` canvas, `#1b1b1c` cards, `#141414` raised layers, `#fc4c1f` primary orange, `#df3003` button orange, `#9f9f9f` body gray, `#ffffff` headings, `#ffffff14` borders, and `#fdc448` as the secondary warm accent. The previous cyan and violet observatory signals were removed from shared panels, controls, chart readiness, graph nodes and active paths, and the standalone Lab’s inherited surfaces.
+
+Command Center, CBOM Inventory, Dependency Graph, Migration, Evidence & Reports, and the standalone Lab were reviewed at desktop size. Command Center and Lab also passed 390-pixel mobile review. The alternate light theme remained readable and the dark selection was restored. TypeScript passed and Vitest completed **66 tests across twenty-three files**.

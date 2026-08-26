@@ -24,10 +24,10 @@ function GraphNode({ node, selected, chained, onSelect }: { node: EvidenceGraphN
   const dimmed = !selected && !chained;
   return <g transform={`translate(${node.x} ${node.y})`} role="button" tabIndex={0} aria-label={`Select ${node.label} ${node.type} node`} className="cursor-pointer outline-none" opacity={dimmed ? 0.35 : 1} onPointerDown={event => { event.stopPropagation(); onSelect(node.id); }} onClick={event => { event.stopPropagation(); onSelect(node.id); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(node.id); } }}>
     <rect x="-76" y="-42" width="152" height="96" rx="14" fill="transparent" pointerEvents="all" />
-    {selected && <circle r={radius + 9} fill="none" stroke="#67e8f9" strokeWidth="1.5" strokeOpacity="0.65" className="animate-pulse" />}
-    <circle r={radius} fill="#0c1d30" stroke={selected ? "#67e8f9" : node.color} strokeWidth={selected ? 3 : 1.75} />
+    {selected && <circle r={radius + 9} fill="none" stroke="#fc4c1f" strokeWidth="1.5" strokeOpacity="0.65" className="animate-pulse" />}
+    <circle r={radius} fill="#141414" stroke={selected ? "#fc4c1f" : node.color} strokeWidth={selected ? 3 : 1.75} />
     <circle r={Math.max(3, radius * 0.24)} fill={node.color} />
-    <text y={radius + 19} textAnchor="middle" fill={selected ? "#ecfeff" : "#cbd5e1"} fontSize="13" fontWeight={selected ? "700" : "500"}>{label}</text>
+    <text y={radius + 19} textAnchor="middle" fill={selected ? "#ffffff" : "#dedede"} fontSize="13" fontWeight={selected ? "700" : "500"}>{label}</text>
     <text y={radius + 34} textAnchor="middle" fill={node.color} fontSize="9" fontWeight="700" letterSpacing="1.2">{node.type.toUpperCase()}</text>
   </g>;
 }
@@ -37,7 +37,7 @@ function GraphEdge({ edge, active }: { edge: ReturnType<typeof buildEdges>[numbe
   const target = edge.target!;
   const middle = (source.x + target.x) / 2;
   const path = `M ${source.x} ${source.y} C ${middle} ${source.y}, ${middle} ${target.y}, ${target.x} ${target.y}`;
-  return <path d={path} fill="none" stroke={active ? "#67e8f9" : "#48617c"} strokeWidth={active ? 2.5 : 1.15} strokeOpacity={active ? 0.92 : 0.3} filter={active ? "url(#chainGlow)" : undefined} />;
+  return <path d={path} fill="none" stroke={active ? "#fc4c1f" : "#9f9f9f"} strokeWidth={active ? 2.5 : 1.15} strokeOpacity={active ? 0.92 : 0.3} filter={active ? "url(#chainGlow)" : undefined} />;
 }
 
 export default function Graph() {

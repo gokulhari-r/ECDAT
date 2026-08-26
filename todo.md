@@ -146,3 +146,5 @@
 - [x] Compare the supplied archive’s exact color tokens against the current derived observatory overrides and replace the mismatched palette values.
 - [x] Verify the corrected archive palette across dark/light, desktop/mobile, and key analytical workspaces without changing functionality; document and checkpoint the correction.
 - [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.
+- [x] Replace the observatory cyan/violet palette with the live CodeHunters SIH 2026 page palette: #060606, #1b1b1c, #fc4c1f, #df3003, #9f9f9f, #ffffff, and #ffffff14.
+- [x] Verify the reference-palette update in primary workspaces, light/dark themes, responsive views, TypeScript, and Vitest; document and checkpoint it.

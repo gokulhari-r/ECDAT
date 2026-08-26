@@ -14,7 +14,7 @@ import { useEffect } from "react";
 
 function LegacyDescentRedirect() {
   useEffect(() => { window.location.replace("/lab.html?scenario=rsa-key-exchange"); }, []);
-  return <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-[#091423] p-6 text-center text-sm text-slate-400">Opening the standalone Remediation Lab…</div>;
+  return <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-[#1b1b1c] p-6 text-center text-sm text-slate-400">Opening the standalone Remediation Lab…</div>;
 }
 
 function Router() {

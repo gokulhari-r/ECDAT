@@ -1,8 +1,8 @@
 import { Cell, Pie, PieChart } from "recharts";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 
-const riskColors: Record<string, string> = { Critical: "#ff4d6d", High: "#ffb454", Medium: "#28e0ff", Low: "#3ddc97" };
-const exposureColors: Record<string, string> = { "Quantum-vulnerable": "#ff4d6d", "Legacy / monitor": "#ffb454", "Lower quantum exposure": "#3ddc97" };
+const riskColors: Record<string, string> = { Critical: "#ff0003", High: "#ff8f3c", Medium: "#fdc448", Low: "#3eb75e" };
+const exposureColors: Record<string, string> = { "Quantum-vulnerable": "#ff0003", "Legacy / monitor": "#ff8f3c", "Lower quantum exposure": "#3eb75e" };
 const riskConfig = Object.fromEntries(Object.entries(riskColors).map(([key, color]) => [key, { label: key, color }])) satisfies ChartConfig;
 const exposureConfig = Object.fromEntries(Object.entries(exposureColors).map(([key, color]) => [key, { label: key, color }])) satisfies ChartConfig;
 
@@ -23,5 +23,5 @@ export function QuantumExposureChart({ data, onSelectQuantum }: { data: { quantu
 
 export function AlgorithmDistribution({ data, onSelect }: { data: Array<{ algorithm: string; count: number; percentage: number }>; onSelect: (algorithm: string) => void }) {
   if (!data.length) return <p className="rounded-2xl border border-dashed border-white/10 p-5 text-sm text-slate-500">No observed algorithms are available for this assessment.</p>;
-  return <div className="space-y-3">{data.map(item => <button type="button" key={item.algorithm} onClick={() => onSelect(item.algorithm)} className="group grid w-full grid-cols-[minmax(0,1fr)_auto] gap-x-4 rounded-xl px-2 py-1 text-left transition hover:bg-white/[0.035] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60"><span className="min-w-0"><span className="flex items-baseline justify-between gap-3"><span className="truncate text-sm font-medium text-slate-200">{item.algorithm}</span><span className="text-xs text-slate-500">{item.percentage}%</span></span><span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-white/[0.06]"><span className="block h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-400 transition group-hover:brightness-125" style={{ width: `${Math.max(item.percentage, 5)}%` }} /></span></span><span className="self-center text-sm font-semibold text-white">{item.count}</span></button>)}</div>;
+  return <div className="space-y-3">{data.map(item => <button type="button" key={item.algorithm} onClick={() => onSelect(item.algorithm)} className="group grid w-full grid-cols-[minmax(0,1fr)_auto] gap-x-4 rounded-xl px-2 py-1 text-left transition hover:bg-white/[0.035] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"><span className="min-w-0"><span className="flex items-baseline justify-between gap-3"><span className="truncate text-sm font-medium text-slate-200">{item.algorithm}</span><span className="text-xs text-slate-500">{item.percentage}%</span></span><span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-white/[0.06]"><span className="block h-full rounded-full bg-gradient-to-r from-[#fc4c1f] to-[#fdc448] transition group-hover:brightness-125" style={{ width: `${Math.max(item.percentage, 5)}%` }} /></span></span><span className="self-center text-sm font-semibold text-white">{item.count}</span></button>)}</div>;
 }

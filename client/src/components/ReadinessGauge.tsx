@@ -1,7 +1,7 @@
 import { RadialBar, RadialBarChart } from "recharts";
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 
-const readinessConfig = { readiness: { label: "Quantum readiness", color: "#28e0ff" } } satisfies ChartConfig;
+const readinessConfig = { readiness: { label: "Quantum readiness", color: "#fc4c1f" } } satisfies ChartConfig;
 
 export function ReadinessGauge({ value, label = "Quantum readiness", compact = false }: { value: number; label?: string; compact?: boolean }) {
   const readiness = Math.max(0, Math.min(100, value));

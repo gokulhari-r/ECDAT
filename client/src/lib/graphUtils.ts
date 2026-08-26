@@ -15,15 +15,15 @@ export type EvidenceGraphNode = {
 export type EvidenceGraphEdge = GraphRelationship & { highlighted: boolean; source?: EvidenceGraphNode; target?: EvidenceGraphNode };
 
 const nodeStyles: Record<string, { column: number; color: string }> = {
-  service: { column: 0, color: "#67e8f9" },
-  library: { column: 1, color: "#a78bfa" },
-  algorithm: { column: 2, color: "#fb7185" },
-  asset: { column: 2, color: "#fbbf24" },
-  certificate: { column: 3, color: "#34d399" },
-  "certificate-authority": { column: 3, color: "#2dd4bf" },
-  endpoint: { column: 4, color: "#a5f3fc" },
-  data: { column: 5, color: "#60a5fa" },
-  entity: { column: 1, color: "#94a3b8" },
+  service: { column: 0, color: "#fc4c1f" },
+  library: { column: 1, color: "#fdc448" },
+  algorithm: { column: 2, color: "#ff0003" },
+  asset: { column: 2, color: "#ff8f3c" },
+  certificate: { column: 3, color: "#3eb75e" },
+  "certificate-authority": { column: 3, color: "#df3003" },
+  endpoint: { column: 4, color: "#fdc448" },
+  data: { column: 5, color: "#fc4c1f" },
+  entity: { column: 1, color: "#9f9f9f" },
 };
 
 export const graphColumnLabels = ["Service", "Library", "Crypto", "Certificate", "Endpoint", "Data"];
