@@ -383,6 +383,12 @@ Small, allowlisted dependency manifests (`requirements.txt`, `pyproject.toml`, `
 
 Indirect evidence now persists through the existing repository-static scan flow with file location, confidence, and static-analysis provenance. The no-match message now accurately covers source, dependency-manifest, and safe configuration indicators. Fixtures cover wrapper algorithms, manifest-only evidence, manifest prioritization, configuration key detection, and non-retention of a secret fixture value. TypeScript passed and Vitest completed **77 tests across twenty-six files**.
 
+## Repository finding-key collision repair
+
+The repository scanner previously derived `findingKey` values from a truncated source-path fragment and rule identifier. That could exceed the 48-character database column for long paths and could collapse different long paths sharing the same leading fragment. The resulting failed multi-row `ecdatFindings` insert was transactional, so no incomplete scan record was committed.
+
+Finding keys now use a readable normalized rule hint plus a deterministic 16-character SHA-256 fingerprint of the full path and rule. Every generated key is bounded below the database limit while preserving a stable unique identity for direct source, dependency-manifest, and configuration evidence. Fixture coverage verifies two long, similarly prefixed paths produce distinct bounded keys; the repository persistence and rollback suites remain green. TypeScript passed and Vitest completed **78 tests across twenty-six files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)

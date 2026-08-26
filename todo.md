@@ -176,3 +176,6 @@
 - [x] Reconcile the proposed wrapper-library, dependency-manifest, and configuration detection plan with ECDAT’s bounded public-source scanner safeguards.
 - [x] Add safe static detection for wrapper libraries, dependency manifests, and configuration indicators without reading secrets or executing repository content.
 - [x] Persist classified direct and indirect crypto evidence with clear confidence/provenance, then verify fixtures, TypeScript, Vitest, and checkpoint the scanner upgrade.
+- [x] Diagnose the repository-scan finding insert failure and identify conflicting generated finding keys.
+- [x] Make repository-scan finding identifiers collision-safe while preserving distinct direct, dependency, and configuration evidence.
+- [x] Verify successful persistence, transaction safety, TypeScript, and Vitest; document and checkpoint the repair.

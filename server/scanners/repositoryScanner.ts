@@ -1,6 +1,7 @@
 import { type SeedFinding } from "../ecdatSeed";
 import { evaluateFindingRisk } from "../ecdatRisk";
 import { Unzip, UnzipInflate } from "fflate";
+import { createHash } from "node:crypto";
 
 const MAX_FILES = 40;
 const MAX_FILE_BYTES = 120_000;
@@ -123,11 +124,17 @@ function safeKeyPart(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 28);
 }
 
+function repositoryFindingKey(path: string, ruleId: string) {
+  const hint = safeKeyPart(ruleId).slice(0, 20);
+  const fingerprint = createHash("sha256").update(`${path}\u0000${ruleId}`).digest("hex").slice(0, 16);
+  return `repo-${hint}-${fingerprint}`;
+}
+
 function createFinding(repository: PublicGitHubRepository, branch: string, file: RepositorySourceFile, rule: StaticRule, match: RegExpExecArray, assetType: "Source file" | "Dependency manifest" | "Configuration file"): SeedFinding {
   const assessment = evaluateFindingRisk({ quantumVulnerable: rule.quantumVulnerable, sensitivity: "Not classified", fallbackDataLifetimeYears: 0, fallbackMigrationMonths: 0, crqcHorizonYears: 9 });
   const location = `${repository.owner}/${repository.repository}@${branch}:${file.path}:${lineNumber(file.content, match.index ?? 0)}`;
   return {
-    findingKey: `repo-${safeKeyPart(file.path)}-${rule.id}`,
+    findingKey: repositoryFindingKey(file.path, rule.id),
     assetName: file.path,
     assetType,
     algorithm: rule.deriveAlgorithm?.(file.content) ?? rule.algorithm,

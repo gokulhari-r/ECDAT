@@ -37,6 +37,16 @@ describe("repository scanner MVP", () => {
     expect(findings.every(finding => !finding.evidence.includes("do-not-retain-this-value"))).toBe(true);
   });
 
+  it("creates bounded unique finding keys for long paths that share a prefix", () => {
+    const findings = analyzeRepositoryFiles(repository, "main", [
+      { path: "services/authentication/very-long-common-prefix-module-a/crypto.py", content: "from passlib.context import CryptContext" },
+      { path: "services/authentication/very-long-common-prefix-module-b/crypto.py", content: "from passlib.context import CryptContext" },
+    ]);
+    expect(findings).toHaveLength(2);
+    expect(new Set(findings.map(finding => finding.findingKey)).size).toBe(2);
+    expect(findings.every(finding => finding.findingKey.length <= 48)).toBe(true);
+  });
+
   it("uses bounded GitHub metadata and raw-source requests without cloning repositories", async () => {
     const requests: string[] = [];
     const fetcher = async (url: string) => {
