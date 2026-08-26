@@ -138,4 +138,9 @@
 - [x] Add Lab launch actions for the sidebar’s built-in scenario and selected active findings from CBOM, Dependency Graph, and Migration.
 - [x] Remove Quantum Descent from the sidebar, route composition, search, and cross-workspace actions without leaving stale destinations.
 - [x] Add tests and verify standalone scenario/custom-finding loading, Lab stage interactions, main-app launch actions, desktop/mobile layouts, and replacement behavior; document and checkpoint the change.
+- [x] Inspect the supplied design-system package and map its components, typography, palettes, spacing, and interaction patterns to current ECDAT workflows.
+- [x] Establish reusable ECDAT design-system tokens, typography, navigation shell, and component primitives without changing evidence/data contracts.
+- [x] Apply the supplied visual system across Command Center, CBOM, Dependency Graph, Migration, Evidence & Reports, and the standalone Remediation Lab.
+- [x] Add regression coverage and verify desktop/mobile visual fidelity, active data states, and accessible interactions; document and checkpoint the design-system implementation.
+- [x] Preserve all current ECDAT interactions while applying a cohesive dark-intelligence visual overhaul based on the supplied archive’s base tokens.
 - [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.

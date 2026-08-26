@@ -76,7 +76,7 @@ export default function Migration() {
   if (workspace.isLoading && (!workspace.findings.length || workspace.isForceLoading)) return <WorkspaceState state="loading" title="Building the migration decision layer" description="Resolving active evidence, prioritisation inputs, relationship context, and generated migration guidance." />;
   if (!candidates.length) return <WorkspaceState state="empty" title="No migration candidates yet" description="Run a scan to derive evidence-backed PQC guidance, relationship context, and an actionable migration roadmap." />;
 
-  return <div className="mx-auto max-w-[1550px] pb-10">
+  return <div className="observatory-migration mx-auto max-w-[1550px] pb-10">
     <Breadcrumb section="Migration roadmap" />
     <EcdatHeader eyebrow="Decision layer · evidence to execution" title="Migration roadmap" description="Understand what needs to migrate, why it is urgent, what should replace it, and how to sequence the work. Current posture and generated guidance remain anchored to the active scan." />
 

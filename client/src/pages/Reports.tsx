@@ -66,7 +66,7 @@ export default function Reports() {
     document.getElementById("report-preview")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  return <div className="mx-auto max-w-[1550px]">
+  return <div className="observatory-reports mx-auto max-w-[1550px]">
     <Breadcrumb section="Evidence & Reports" />
     <EcdatHeader eyebrow="Assessment intelligence" title="Evidence & Reports" description="Move from discovered cryptographic data to traceable evidence, risk, decision, migration, and export—without separating the report from the assessment that produced it." />
 
