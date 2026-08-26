@@ -126,7 +126,7 @@ export default function Graph() {
 }
 
 function GraphLegend() {
-  const legend = [{ label: "Service", color: "#67e8f9" }, { label: "Library", color: "#a78bfa" }, { label: "Algorithm", color: "#fb7185" }, { label: "Certificate", color: "#34d399" }, { label: "Endpoint", color: "#a5f3fc" }, { label: "Data", color: "#60a5fa" }];
+  const legend = [{ label: "Service", color: "#fc4c1f" }, { label: "Library", color: "#fdc448" }, { label: "Algorithm", color: "#ff0003" }, { label: "Certificate", color: "#3eb75e" }, { label: "Endpoint", color: "#fdc448" }, { label: "Data", color: "#fc4c1f" }];
   return <><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-cyan-300/10 text-cyan-100"><Network className="h-4 w-4" /></span><div><p className="text-sm font-medium text-slate-100">Blast-radius lens</p><p className="text-xs text-slate-500">Select an observed entity</p></div></div><div className="mt-6 rounded-2xl border border-white/7 bg-[#06101c]/70 p-4 text-sm leading-6 text-slate-400">Select a node to highlight its observed dependency chain and inspect a reverse-path impact lens.</div><div className="mt-5 space-y-2">{legend.map(item => <div key={item.label} className="flex items-center gap-2 rounded-lg border border-white/7 bg-white/[0.025] px-3 py-2 text-xs text-slate-300"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />{item.label}</div>)}</div></>;
 }
 
