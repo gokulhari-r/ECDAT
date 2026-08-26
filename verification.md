@@ -409,6 +409,12 @@ The existing global dependency landscape remains the default **Overview**. Selec
 
 The detail context now presents a repository/type/entity breadcrumb with a direct return to Overview and a Trace blast radius control. No code-dependency node is fabricated: progressive source leaves exist only where the active finding carries an observed source location. Desktop and 390 px mobile layouts were visually verified. TypeScript passed and Vitest completed **87 tests across thirty files**.
 
+## Expandable Dependency Graph disclosure
+
+The current global graph was extended rather than replaced. Selecting an entity now begins at **L0**, showing only that observed root in Explore mode. Each visible node with observed neighbors exposes a keyboard-accessible **+ / −** control. Expansion follows only existing relationship records, is bounded by the L0–L3 depth selector, and branch collapse hides the expanded descendants while keeping the selected root. The explicit **Expand depth** and **Collapse all** actions provide fast controlled disclosure.
+
+Overview, Trace Impact, free-look panning/trackpad zoom, and the blast-radius context remain intact. The graph also now includes a local observed-evidence search. Dedicated utility coverage verifies manual expansion, bounded depth expansion, nested collapse, and observed-neighbor counts. Desktop and 390 px mobile views were checked. TypeScript passed and Vitest completed **89 tests across thirty-one files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)

@@ -191,3 +191,6 @@
 - [x] Map the progressive dependency-intelligence concept onto only the existing evidence-backed graph data and current free-look canvas.
 - [x] Add Overview, Explore, and Trace Impact states that progressively focus and reveal observed graph relationships without inventing code-level evidence.
 - [x] Add selection breadcrumbs, back/reset navigation, explicit visual-state guidance, tests, visual verification, documentation, and a release checkpoint for the progressive graph enhancement.
+- [x] Reconcile the supplied expandable-graph design with the current evidence-backed free-look, Overview, Explore, and Trace Impact graph rather than replacing it.
+- [x] Add true node expansion and collapse behavior with bounded relationship depth controls that reveal only observed dependency evidence.
+- [x] Integrate expansion with graph search, progressive modes, selection context, tests, responsive visual verification, documentation, and a release checkpoint.

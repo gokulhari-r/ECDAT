@@ -6,14 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useActiveEcdatScan } from "@/hooks/useActiveEcdatScan";
 import { buildEdges, computeBlastRadius, computeChain, extractNodes, graphColumnLabels, type EvidenceGraphNode } from "@/lib/graphUtils";
+import { collapseExpandedNode, expandNodesToDepth, expandedGraphScope, observedNeighborCount } from "@/lib/graphExpansion";
 import { graphScopeForMode, sourceEvidenceLeaves, type ProgressiveGraphMode } from "@/lib/graphProgression";
 import { clampGraphZoom, panGraphViewport, zoomGraphAtPoint } from "@/lib/graphViewport";
-import { ArrowRight, Crosshair, FlaskConical, GitBranch, Move, Network, RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowRight, Crosshair, FlaskConical, GitBranch, Move, Network, RotateCcw, Search, ZoomIn, ZoomOut } from "lucide-react";
 import { openFindingInLab } from "@/lib/labLaunch";
 
 const nodeRadii: Record<string, number> = { service: 18, library: 14, algorithm: 16, asset: 16, certificate: 15, "certificate-authority": 16, endpoint: 13, data: 14, entity: 12 };
 
-function GraphNode({ node, selected, chained, onSelect }: { node: EvidenceGraphNode; selected: boolean; chained: boolean; onSelect?: (id: string) => void }) {
+function GraphNode({ node, selected, chained, onSelect, expanded = false, expandable = false, onToggle }: { node: EvidenceGraphNode; selected: boolean; chained: boolean; onSelect?: (id: string) => void; expanded?: boolean; expandable?: boolean; onToggle?: (id: string) => void }) {
   const radius = nodeRadii[node.type] ?? nodeRadii.entity;
   const label = node.label.length > 24 ? `${node.label.slice(0, 23)}…` : node.label;
   const dimmed = !selected && !chained;
@@ -24,6 +25,7 @@ function GraphNode({ node, selected, chained, onSelect }: { node: EvidenceGraphN
     <circle r={Math.max(3, radius * 0.24)} fill={node.color} />
     <text y={radius + 19} textAnchor="middle" fill={selected ? "#ffffff" : "#dedede"} fontSize="13" fontWeight={selected ? "700" : "500"}>{label}</text>
     <text y={radius + 34} textAnchor="middle" fill={node.color} fontSize="9" fontWeight="700" letterSpacing="1.2">{node.type.toUpperCase()}</text>
+    {expandable && onToggle ? <g transform={`translate(${radius + 13} ${-radius - 9})`} role="button" tabIndex={0} aria-label={`${expanded ? "Collapse" : "Expand"} observed neighbors for ${node.label}`} onPointerDown={event => event.stopPropagation()} onClick={event => { event.stopPropagation(); onToggle(node.id); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onToggle(node.id); } }} className="cursor-pointer outline-none"><circle r="10" fill={expanded ? "#fc4c1f" : "#06101c"} stroke={node.color} strokeWidth="1.4" /><path d={expanded ? "M -4 0 L 4 0" : "M -4 0 L 4 0 M 0 -4 L 0 4"} stroke="white" strokeWidth="1.7" strokeLinecap="round" /></g> : null}
   </g>;
 }
 
@@ -42,6 +44,9 @@ export default function Graph() {
   const [selected, setSelected] = useState<string | null>(null);
   const [graphMode, setGraphMode] = useState<ProgressiveGraphMode>("overview");
   const [appFilter, setAppFilter] = useState("all");
+  const [graphSearch, setGraphSearch] = useState("");
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [maxExpansionDepth, setMaxExpansionDepth] = useState(2);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const svgRef = useRef<SVGSVGElement | null>(null);
   const dragOrigin = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
@@ -51,7 +56,7 @@ export default function Graph() {
   useEffect(() => {
     if (!requestedFinding || selected) return;
     const match = nodes.find(node => node.findingKeys.includes(requestedFinding));
-    if (match) { setSelected(match.id); setGraphMode("explore"); }
+    if (match) { setSelected(match.id); setGraphMode("explore"); setExpandedNodes(new Set()); }
   }, [nodes, requestedFinding, selected]);
 
   const filteredRelationships = useMemo(() => {
@@ -62,22 +67,36 @@ export default function Graph() {
   const visibleNodes = useMemo(() => extractNodes(filteredRelationships, workspace.findings), [filteredRelationships, workspace.findings]);
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") { setSelected(null); setGraphMode("overview"); } };
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") { setSelected(null); setGraphMode("overview"); setExpandedNodes(new Set()); } };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const chain = useMemo(() => selected ? computeChain(selected, filteredRelationships) : new Set<string>(), [filteredRelationships, selected]);
   const focusScope = useMemo(() => graphScopeForMode(graphMode, selected, filteredRelationships), [filteredRelationships, graphMode, selected]);
-  const edges = useMemo(() => buildEdges(filteredRelationships, visibleNodes, focusScope), [focusScope, filteredRelationships, visibleNodes]);
+  const expansionScope = useMemo(() => expandedGraphScope(selected, expandedNodes, maxExpansionDepth, filteredRelationships), [expandedNodes, filteredRelationships, maxExpansionDepth, selected]);
+  const activeScope = graphMode === "explore" ? expansionScope : focusScope;
+  const edges = useMemo(() => buildEdges(filteredRelationships, visibleNodes, activeScope), [activeScope, filteredRelationships, visibleNodes]);
+  const graphNodeIds = useMemo(() => {
+    const base = graphMode === "overview" ? new Set(visibleNodes.map(node => node.id)) : activeScope;
+    const query = graphSearch.trim().toLowerCase();
+    if (!query) return base;
+    return new Set(Array.from(base).filter(id => {
+      const node = visibleNodes.find(item => item.id === id);
+      return node && [node.label, node.type, ...node.findingKeys].join(" ").toLowerCase().includes(query);
+    }));
+  }, [activeScope, graphMode, graphSearch, visibleNodes]);
+  const displayedNodes = useMemo(() => visibleNodes.filter(node => graphNodeIds.has(node.id)), [graphNodeIds, visibleNodes]);
+  const displayedEdges = useMemo(() => edges.filter(edge => graphNodeIds.has(edge.sourceNode) && graphNodeIds.has(edge.targetNode)), [edges, graphNodeIds]);
   const blast = useMemo(() => selected ? computeBlastRadius(selected, filteredRelationships) : null, [filteredRelationships, selected]);
   const selectedNode = useMemo(() => visibleNodes.find(node => node.id === selected), [selected, visibleNodes]);
   const selectedFindingKey = selectedNode?.findingKeys[0];
-  const sourceLeaves = useMemo(() => graphMode === "explore" && selectedNode ? sourceEvidenceLeaves(selectedNode.findingKeys, workspace.findings) : [], [graphMode, selectedNode, workspace.findings]);
+  const sourceLeaves = useMemo(() => graphMode === "explore" && selectedNode && expandedNodes.has(selectedNode.id) ? sourceEvidenceLeaves(selectedNode.findingKeys, workspace.findings) : [], [expandedNodes, graphMode, selectedNode, workspace.findings]);
   const sourceNodes = useMemo(() => sourceLeaves.map((leaf, index) => ({ id: leaf.id, label: leaf.label, type: "evidence", column: 3, x: Math.min(1030, (selectedNode?.x ?? 455) + 112), y: (selectedNode?.y ?? 180) + (index - (sourceLeaves.length - 1) / 2) * 64, color: "#c4b5fd", findingKeys: [leaf.findingKey] })), [selectedNode, sourceLeaves]);
   const resetView = () => setTransform({ x: 0, y: 0, scale: 1 });
-  const resetGraph = () => { setSelected(null); setGraphMode("overview"); resetView(); };
-  const selectNode = (id: string) => { setSelected(id); setGraphMode("explore"); };
+  const resetGraph = () => { setSelected(null); setGraphMode("overview"); setExpandedNodes(new Set()); setGraphSearch(""); resetView(); };
+  const selectNode = (id: string) => { setSelected(id); setGraphMode("explore"); setExpandedNodes(new Set()); };
+  const toggleExpansion = (id: string) => setExpandedNodes(current => current.has(id) ? collapseExpandedNode(id, current, filteredRelationships, selected) : new Set([...Array.from(current), id]));
+  const setDepth = (depth: number) => { setMaxExpansionDepth(depth); setExpandedNodes(expandNodesToDepth(selected, depth, filteredRelationships)); };
 
   if (workspace.hasError) return <WorkspaceState state="error" title="Dependency graph is unavailable" description="The current relationship evidence could not be retrieved." onRetry={() => void workspace.retry()} />;
   if (workspace.isLoading && !workspace.relationships.length) return <WorkspaceState state="loading" title="Building the dependency graph" description="Connecting observed services, libraries, algorithms, certificates, endpoints, and data paths." />;
@@ -89,16 +108,22 @@ export default function Graph() {
 
     <div className="mt-7 flex flex-wrap items-center gap-3 rounded-2xl border border-white/8 bg-[#091423] p-3">
       <label className="flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-white/10 bg-[#06101c] px-3 py-2 text-xs text-slate-400">Application scope
-          <select value={appFilter} onChange={event => { setAppFilter(event.target.value); setSelected(null); setGraphMode("overview"); }} className="ml-auto min-w-0 flex-1 bg-transparent text-right text-xs text-slate-100 outline-none">
+          <select value={appFilter} onChange={event => { setAppFilter(event.target.value); setSelected(null); setGraphMode("overview"); setExpandedNodes(new Set()); }} className="ml-auto min-w-0 flex-1 bg-transparent text-right text-xs text-slate-100 outline-none">
           <option value="all">All observed services</option>
           {serviceNodes.map(node => <option key={node.id} value={node.id}>{node.label}</option>)}
         </select>
       </label>
-      <Badge variant="outline" className="border-white/10 bg-white/[0.025] text-slate-400">{visibleNodes.length} nodes</Badge>
-      <Badge variant="outline" className="border-white/10 bg-white/[0.025] text-slate-400">{edges.length} edges</Badge>
+      <Badge variant="outline" className="border-white/10 bg-white/[0.025] text-slate-400">{displayedNodes.length} nodes</Badge>
+      <Badge variant="outline" className="border-white/10 bg-white/[0.025] text-slate-400">{displayedEdges.length} edges</Badge>
+      <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#06101c] px-3 py-2 text-xs text-slate-400"><Search className="h-3.5 w-3.5" /><input value={graphSearch} onChange={event => setGraphSearch(event.target.value)} placeholder="Find observed evidence" className="w-36 bg-transparent text-slate-100 outline-none placeholder:text-slate-600" /></label>
       <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-[#06101c] p-1" aria-label="Graph investigation mode">
         {(["overview", "explore", "impact"] as ProgressiveGraphMode[]).map(mode => <Button key={mode} variant="ghost" size="sm" disabled={mode !== "overview" && !selected} onClick={() => setGraphMode(mode)} className={graphMode === mode ? "bg-[#fc4c1f] text-white hover:bg-[#fc4c1f]" : "text-slate-400 hover:bg-white/5 hover:text-white"}>{mode === "overview" ? "Overview" : mode === "explore" ? "Explore" : "Trace impact"}</Button>)}
       </div>
+      <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-[#06101c] px-3 py-2 text-xs text-slate-400">Depth
+        <select value={maxExpansionDepth} disabled={!selected} onChange={event => setDepth(Number(event.target.value))} className="bg-transparent text-xs text-slate-100 outline-none disabled:text-slate-600"><option value={0}>L0</option><option value={1}>L1</option><option value={2}>L2</option><option value={3}>L3</option></select>
+      </label>
+      <Button size="sm" variant="outline" disabled={!selected} onClick={() => setExpandedNodes(expandNodesToDepth(selected, maxExpansionDepth, filteredRelationships))} className="border-white/10 bg-[#06101c] text-slate-300">Expand depth</Button>
+      <Button size="sm" variant="outline" disabled={!selected || !expandedNodes.size} onClick={() => setExpandedNodes(new Set())} className="border-white/10 bg-[#06101c] text-slate-300">Collapse all</Button>
       <div className="ml-auto flex items-center gap-2">
         <Button size="icon" variant="outline" aria-label="Zoom graph in" onClick={() => setTransform(current => ({ ...current, scale: clampGraphZoom(current.scale + 0.15) }))} className="border-white/10 bg-[#06101c] text-slate-300"><ZoomIn className="h-4 w-4" /></Button>
         <Button size="icon" variant="outline" aria-label="Zoom graph out" onClick={() => setTransform(current => ({ ...current, scale: clampGraphZoom(current.scale - 0.15) }))} className="border-white/10 bg-[#06101c] text-slate-300"><ZoomOut className="h-4 w-4" /></Button>
@@ -114,18 +139,18 @@ export default function Graph() {
           <rect width="1120" height="620" fill="url(#graphGrid)" />
           <g transform={`translate(${transform.x} ${transform.y}) scale(${transform.scale})`}>
             {graphColumnLabels.map((label, index) => <text key={label} x={105 + index * 175} y="45" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="700" letterSpacing="1.4">{label.toUpperCase()}</text>)}
-            {edges.map((edge, index) => <GraphEdge key={`${edge.sourceNode}-${edge.targetNode}-${index}`} edge={edge} active={edge.highlighted} impact={graphMode === "impact"} />)}
+            {displayedEdges.map((edge, index) => <GraphEdge key={`${edge.sourceNode}-${edge.targetNode}-${index}`} edge={edge} active={edge.highlighted} impact={graphMode === "impact"} />)}
             {sourceNodes.map(node => <path key={`source-edge-${node.id}`} d={`M ${selectedNode?.x} ${selectedNode?.y} L ${node.x} ${node.y}`} fill="none" stroke="#c4b5fd" strokeWidth="1.5" strokeOpacity="0.85" strokeDasharray="5 4" />)}
-            {visibleNodes.map(node => <GraphNode key={node.id} node={node} selected={node.id === selected} chained={graphMode === "overview" || focusScope.has(node.id)} onSelect={selectNode} />)}
+            {displayedNodes.map(node => <GraphNode key={node.id} node={node} selected={node.id === selected} chained={graphMode === "overview" || activeScope.has(node.id)} onSelect={selectNode} expanded={expandedNodes.has(node.id)} expandable={graphMode === "explore" && observedNeighborCount(node.id, filteredRelationships) > 0} onToggle={toggleExpansion} />)}
             {sourceNodes.map(node => <GraphNode key={node.id} node={node} selected={false} chained />)}
           </g>
         </svg>
         </div>
-        <div className="flex flex-wrap items-center gap-3 border-t border-white/8 bg-[#06101c]/50 px-5 py-3 text-[11px] text-slate-500"><Move className="h-3.5 w-3.5" />{graphMode === "overview" ? "Overview: all observed relationships stay visible." : graphMode === "explore" ? "Explore: the selected observed chain and source-location evidence are revealed." : "Trace impact: the bounded reverse relationship lens is highlighted."} Drag or two-finger scroll to pan · pinch to zoom · Escape clears selection</div>
+        <div className="flex flex-wrap items-center gap-3 border-t border-white/8 bg-[#06101c]/50 px-5 py-3 text-[11px] text-slate-500"><Move className="h-3.5 w-3.5" />{graphMode === "overview" ? "Overview: all observed relationships stay visible." : graphMode === "explore" ? `Explore: use + / − on observed nodes to reveal up to L${maxExpansionDepth}.` : "Trace impact: the bounded reverse relationship lens is highlighted."} Drag or two-finger scroll to pan · pinch to zoom · Escape clears selection</div>
       </section>
 
       <aside className="rounded-3xl border border-white/8 bg-[#091423] p-5">
-        {selectedNode && blast ? <BlastRadiusPanel node={selectedNode} blast={blast} mode={graphMode} onTrace={() => setGraphMode("impact")} onOverview={() => { setSelected(null); setGraphMode("overview"); }} onInventory={() => setLocation(`/inventory${selectedFindingKey ? `?finding=${selectedFindingKey}` : ""}`)} onRoadmap={() => setLocation(`/migration${selectedFindingKey ? `?finding=${selectedFindingKey}` : ""}`)} onLab={() => { const finding = workspace.findings.find(item => item.findingKey === selectedFindingKey); if (finding) openFindingInLab(finding); }} /> : <GraphLegend />}
+        {selectedNode && blast ? <BlastRadiusPanel node={selectedNode} blast={blast} mode={graphMode} onTrace={() => setGraphMode("impact")} onOverview={() => { setSelected(null); setGraphMode("overview"); setExpandedNodes(new Set()); }} onInventory={() => setLocation(`/inventory${selectedFindingKey ? `?finding=${selectedFindingKey}` : ""}`)} onRoadmap={() => setLocation(`/migration${selectedFindingKey ? `?finding=${selectedFindingKey}` : ""}`)} onLab={() => { const finding = workspace.findings.find(item => item.findingKey === selectedFindingKey); if (finding) openFindingInLab(finding); }} /> : <GraphLegend />}
       </aside>
     </div>
   </div>;
