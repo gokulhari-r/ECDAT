@@ -185,3 +185,6 @@
 - [x] Expand safe source, manifest, and configuration detection without cloning, executing, or retaining secret values from repository content.
 - [x] Improve evidence persistence and CycloneDX-oriented CBOM export mapping for direct and indirect repository findings.
 - [x] Verify acquisition limits, quality fixtures, persistence, exports, TypeScript, and Vitest; document and checkpoint the scanner quality upgrade.
+- [x] Enable Dependency Graph free-look navigation with trackpad zoom and unrestricted pointer panning.
+- [x] Preserve selection, reset, visible zoom controls, keyboard access, and responsive graph behavior while adding free-look interaction.
+- [x] Add interaction regression coverage, visually verify the graph, document, and checkpoint the free-look update.

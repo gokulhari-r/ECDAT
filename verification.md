@@ -397,6 +397,12 @@ A confidence-aware deduplication layer merges only equivalent evidence records, 
 
 Fixtures cover the expanded language, manifest, configuration, non-retention, deduplication, key-length, persistence, and bounded-acquisition rules. TypeScript passed and Vitest completed **82 tests across twenty-eight files**.
 
+## Dependency Graph free-look navigation
+
+The Dependency Graph now supports unrestricted canvas navigation. Users can drag blank graph space to pan, use a two-finger trackpad scroll to pan in either axis, and pinch on a trackpad to zoom toward the current pointer position. The existing visible zoom controls and Reset view remain available. Node selection, the observed-chain lens, Escape-to-clear, and the right-side blast-radius context remain unchanged.
+
+The viewport math is covered with focused tests for arbitrary panning, point-preserving pinch zoom, and the supported zoom range. The graph rendered correctly in a desktop visual check. TypeScript passed and Vitest completed **85 tests across twenty-nine files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
