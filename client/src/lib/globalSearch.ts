@@ -8,7 +8,6 @@ const navigation: GlobalSearchItem[] = [
   { group: "Navigate", label: "Dependency graph", detail: "Observed relationship intelligence", path: "/graph", value: "dependency graph relationships" },
   { group: "Navigate", label: "Migration", detail: "PQC guidance, plan tracking, and dependency-aware execution", path: "/migration", value: "migration pqc guidance kanban roadmap" },
   { group: "Navigate", label: "Evidence & Reports", detail: "Assessment package, evidence chains, and exports", path: "/reports", value: "evidence reports export cbom assessment" },
-  { group: "Navigate", label: "Quantum Descent", detail: "Normal and spatial evidence navigation", path: "/descent", value: "quantum descent spatial" },
 ];
 
 export function buildGlobalSearchItems(findings: SearchFinding[], recommendations: SearchRecommendation[]) {

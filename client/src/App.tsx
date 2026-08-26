@@ -8,9 +8,14 @@ import Home from "./pages/Home";
 import Inventory from "./pages/Inventory";
 import Migration from "./pages/Migration";
 import NotFound from "./pages/NotFound";
-import QuantumDescent from "./pages/QuantumDescent";
 import Reports from "./pages/Reports";
 import { Route, Switch } from "wouter";
+import { useEffect } from "react";
+
+function LegacyDescentRedirect() {
+  useEffect(() => { window.location.replace("/lab.html?scenario=rsa-key-exchange"); }, []);
+  return <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-[#091423] p-6 text-center text-sm text-slate-400">Opening the standalone Remediation Lab…</div>;
+}
 
 function Router() {
   return <DashboardLayout><Switch>
@@ -21,7 +26,7 @@ function Router() {
     <Route path="/recommendations" component={Migration} />
     <Route path="/roadmap" component={Migration} />
     <Route path="/reports" component={Reports} />
-    <Route path="/descent" component={QuantumDescent} />
+    <Route path="/descent" component={LegacyDescentRedirect} />
     <Route path="/404" component={NotFound} />
     <Route component={NotFound} />
   </Switch></DashboardLayout>;

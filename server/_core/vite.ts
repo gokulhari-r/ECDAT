@@ -25,18 +25,19 @@ export async function setupVite(app: Express, server: Server) {
     const url = req.originalUrl;
 
     try {
+      const isLabEntry = new URL(url, "http://localhost").pathname === "/lab.html";
       const clientTemplate = path.resolve(
         import.meta.dirname,
         "../..",
         "client",
-        "index.html"
+        isLabEntry ? "lab.html" : "index.html"
       );
 
       // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`
+        isLabEntry ? `src="/src/lab-main.tsx"` : `src="/src/main.tsx"`,
+        isLabEntry ? `src="/src/lab-main.tsx?v=${nanoid()}"` : `src="/src/main.tsx?v=${nanoid()}"`
       );
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);

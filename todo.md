@@ -133,4 +133,9 @@
 - [x] Build an accessible, responsive scanner-progress component with explicitly simulated scanner stages, discovery updates, and completion treatment.
 - [x] Integrate the scanner-progress component into the persisted Command Center scenario workflow without altering scan data contracts or post-scan routing.
 - [x] Add regression coverage and verify scanner progress, completion, desktop/mobile, and error behavior; document and checkpoint the update.
+- [x] Audit Vite multi-page support, current navigation, active Quantum Descent references, and finding contracts for the standalone Remediation Lab replacement.
+- [x] Build the standalone Lab entry point, typed pre-built scenarios, safe URL finding encoding/decoding, and an explicitly simulated five-stage remediation flow.
+- [x] Add Lab launch actions for the sidebar’s built-in scenario and selected active findings from CBOM, Dependency Graph, and Migration.
+- [x] Remove Quantum Descent from the sidebar, route composition, search, and cross-workspace actions without leaving stale destinations.
+- [x] Add tests and verify standalone scenario/custom-finding loading, Lab stage interactions, main-app launch actions, desktop/mobile layouts, and replacement behavior; document and checkpoint the change.
 - [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.
