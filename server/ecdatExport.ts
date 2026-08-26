@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export type ExportFinding = {
   findingKey: string;
   assetName: string;
@@ -15,6 +17,11 @@ export type ExportFinding = {
   quantumRisk: string;
 };
 
+function cycloneDxSerialNumber(scanKey: string) {
+  const digest = createHash("sha256").update(scanKey).digest("hex");
+  return `urn:uuid:${digest.slice(0, 8)}-${digest.slice(8, 12)}-5${digest.slice(13, 16)}-8${digest.slice(17, 20)}-${digest.slice(20, 32)}`;
+}
+
 export function buildCycloneDxOrientedCbom(input: {
   scanKey: string;
   displayName: string;
@@ -22,14 +29,13 @@ export function buildCycloneDxOrientedCbom(input: {
   findings: ExportFinding[];
 }) {
   return {
-    bomFormat: "ECDAT CycloneDX-oriented CBOM",
-    specVersion: "0.1",
-    serialNumber: `urn:uuid:${input.scanKey}`,
+    bomFormat: "CycloneDX",
+    specVersion: "1.6",
+    serialNumber: cycloneDxSerialNumber(input.scanKey),
+    version: 1,
     metadata: {
       timestamp: new Date(input.createdAt).toISOString(),
       component: { type: "application", name: input.displayName },
-      tools: [{ vendor: "ECDAT", name: "ECDAT", version: "0.1.0" }],
-      note: "This is an ECDAT prototype export shaped for CBOM interoperability. Validate the selected target schema before production use.",
     },
     components: input.findings.map(finding => ({
       "bom-ref": finding.findingKey,
@@ -37,16 +43,16 @@ export function buildCycloneDxOrientedCbom(input: {
       name: finding.assetName,
       version: finding.version ?? undefined,
       properties: [
-        { name: "ecdat:algorithm", value: finding.algorithm },
-        { name: "ecdat:role", value: finding.cryptoRole },
-        { name: "ecdat:library", value: finding.library ?? "Not observed" },
-        { name: "ecdat:location", value: finding.sourceLocation },
-        { name: "ecdat:usage-context", value: finding.usageContext },
-        { name: "ecdat:risk-level", value: finding.riskLevel },
-        { name: "ecdat:quantum-risk", value: finding.quantumRisk },
-        { name: "ecdat:confidence", value: `${finding.confidence}%` },
-        { name: "ecdat:evidence", value: finding.evidence },
-        { name: "ecdat:provenance", value: finding.provenance },
+        { name: "org.ecdat:algorithm", value: finding.algorithm },
+        { name: "org.ecdat:role", value: finding.cryptoRole },
+        { name: "org.ecdat:library", value: finding.library ?? "Not observed" },
+        { name: "org.ecdat:location", value: finding.sourceLocation },
+        { name: "org.ecdat:usage-context", value: finding.usageContext },
+        { name: "org.ecdat:risk-level", value: finding.riskLevel },
+        { name: "org.ecdat:quantum-risk", value: finding.quantumRisk },
+        { name: "org.ecdat:confidence", value: `${finding.confidence}%` },
+        { name: "org.ecdat:evidence", value: finding.evidence },
+        { name: "org.ecdat:provenance", value: finding.provenance },
       ],
     })),
   };

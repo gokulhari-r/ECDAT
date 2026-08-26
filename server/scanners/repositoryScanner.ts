@@ -2,13 +2,18 @@ import { type SeedFinding } from "../ecdatSeed";
 import { evaluateFindingRisk } from "../ecdatRisk";
 import { Unzip, UnzipInflate } from "fflate";
 import { createHash } from "node:crypto";
+import { deduplicateRepositoryFindings } from "./repositoryDeduplication";
 
 const MAX_FILES = 40;
 const MAX_FILE_BYTES = 120_000;
 const MAX_TOTAL_BYTES = 600_000;
 const MAX_ARCHIVE_BYTES = 3_000_000;
-const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".java", ".go"]);
-const ANALYSIS_FILENAMES = new Set(["requirements.txt", "pyproject.toml", "setup.cfg", "package.json", "pom.xml", "build.gradle", "go.mod", "dockerfile", ".env", "nginx.conf"]);
+const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".java", ".go", ".c", ".h", ".cpp", ".hpp", ".rs"]);
+const ANALYSIS_FILENAMES = new Set([
+  "requirements.txt", "pipfile", "pyproject.toml", "setup.cfg", "package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
+  "pom.xml", "build.gradle", "build.gradle.kts", "go.mod", "go.sum", "gemfile", "cargo.toml", "dockerfile", "docker-compose.yml",
+  "docker-compose.yaml", ".env", ".env.example", "nginx.conf", "nginx.cfg", "httpd.conf", ".htaccess", "application.yml", "application.yaml", "application.properties",
+]);
 const EXCLUDED_PATH_SEGMENTS = new Set([".git", "node_modules", "vendor", "dist", "build", "coverage"]);
 
 export type PublicGitHubRepository = {
@@ -57,6 +62,17 @@ const STATIC_RULES: StaticRule[] = [
   { id: "go-aes", extensions: [".go"], expression: /aes\.NewCipher\s*\(/, algorithm: "AES", cryptoRole: "Encryption", library: "Go crypto", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Go AES cipher construction detected" },
   { id: "go-rsa", extensions: [".go"], expression: /rsa\.(?:GenerateKey|EncryptOAEP|Sign)/, algorithm: "RSA", cryptoRole: "Key establishment or signature", library: "Go crypto", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Go RSA operation detected" },
   { id: "go-ecdsa", extensions: [".go"], expression: /ecdsa\.(?:GenerateKey|Sign|Verify)/, algorithm: "ECDSA", cryptoRole: "Signature", library: "Go crypto", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Go ECDSA operation detected" },
+  { id: "node-hash", extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"], expression: /createHash\s*\(\s*["'`](?:sha(?:1|224|256|384|512)|md5)["'`]/i, algorithm: "Hash algorithm observed", cryptoRole: "Hashing", library: "Node.js crypto", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Medium", usageContext: "Node.js hash operation detected", confidence: 90, deriveAlgorithm: content => content.match(/createHash\s*\(\s*["'`]([^"'`]+)["'`]/i)?.[1] ?? "Hash algorithm observed" },
+  { id: "node-ecdh", extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"], expression: /createECDH\s*\(/i, algorithm: "ECDH curve not observed", cryptoRole: "Key establishment", library: "Node.js crypto", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Node.js ECDH operation detected", confidence: 88 },
+  { id: "node-jose", extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"], expression: /(?:jsonwebtoken|from\s+["'`]jose|require\s*\(\s*["'`]jsonwebtoken|jwt\.(?:sign|verify))\b/i, algorithm: "JWT algorithm not observed", cryptoRole: "Token signature", library: "JavaScript JWT library", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "JavaScript JWT wrapper usage detected", confidence: 84, deriveAlgorithm: content => content.match(/algorithm\s*:\s*["'`]([A-Za-z0-9-]+)["'`]/i)?.[1] ?? "JWT algorithm not observed" },
+  { id: "python-hashlib", extensions: [".py"], expression: /hashlib\.(?:md5|sha1|sha224|sha256|sha384|sha512)\s*\(/i, algorithm: "Python hash algorithm observed", cryptoRole: "Hashing", library: "hashlib", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Medium", usageContext: "Python hashlib operation detected", confidence: 90, deriveAlgorithm: content => content.match(/hashlib\.(md5|sha1|sha224|sha256|sha384|sha512)\s*\(/i)?.[1]?.toUpperCase() ?? "Python hash algorithm observed" },
+  { id: "python-bcrypt", extensions: [".py"], expression: /(?:import\s+bcrypt\b|from\s+bcrypt\b|bcrypt\.(?:hashpw|checkpw))/i, algorithm: "bcrypt", cryptoRole: "Password hashing", library: "bcrypt", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Python bcrypt usage detected", confidence: 90 },
+  { id: "python-fernet", extensions: [".py"], expression: /(?:from\s+cryptography\.fernet\s+import\s+Fernet|\bFernet\s*\()/i, algorithm: "Fernet", cryptoRole: "Encryption", library: "cryptography", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Python Fernet construction detected", confidence: 90 },
+  { id: "java-ecdsa", extensions: [".java"], expression: /Signature\.getInstance\s*\(\s*["'`]SHA\d+withECDSA/i, algorithm: "ECDSA", cryptoRole: "Signature", library: "Java Cryptography Architecture", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Java ECDSA primitive selection detected" },
+  { id: "java-hash", extensions: [".java"], expression: /MessageDigest\.getInstance\s*\(\s*["'`](?:SHA-?\d+|MD5)["'`]/i, algorithm: "Java hash algorithm observed", cryptoRole: "Hashing", library: "Java Cryptography Architecture", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Medium", usageContext: "Java message digest selection detected", confidence: 88 },
+  { id: "go-hash", extensions: [".go"], expression: /(?:sha256|sha512|md5)\.(?:New|Sum\d+)/, algorithm: "Go hash algorithm observed", cryptoRole: "Hashing", library: "Go crypto", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Medium", usageContext: "Go hash operation detected", confidence: 86 },
+  { id: "openssl-evp", extensions: [".c", ".h", ".cpp", ".hpp"], expression: /EVP_(?:aes|sha|Encrypt|Decrypt|Digest)_/i, algorithm: "OpenSSL primitive not observed", cryptoRole: "Cryptographic primitive", library: "OpenSSL", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "OpenSSL EVP API usage detected", confidence: 78 },
+  { id: "rust-ring", extensions: [".rs"], expression: /(?:ring::(?:aead|signature|digest)|aes_gcm::|rsa::)/i, algorithm: "Rust crypto primitive not observed", cryptoRole: "Cryptographic primitive", library: "Rust crypto library", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Rust cryptography library usage detected", confidence: 78 },
 ];
 
 type DependencyRule = Omit<StaticRule, "extensions" | "expression" | "deriveAlgorithm"> & { packages: string[]; manifestNames: string[] };
@@ -70,11 +86,15 @@ const DEPENDENCY_RULES: DependencyRule[] = [
   { id: "manifest-crypto-js", packages: ["crypto-js", "node-forge", "jsonwebtoken"], manifestNames: ["package.json"], algorithm: "Cryptographic package parameters not observed", cryptoRole: "Cryptographic library", library: "JavaScript crypto package", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares a JavaScript cryptographic package", confidence: 72 },
   { id: "manifest-bouncycastle", packages: ["bouncycastle", "nimbus-jose-jwt", "spring-security-crypto"], manifestNames: ["pom.xml", "build.gradle"], algorithm: "JVM cryptographic package parameters not observed", cryptoRole: "Cryptographic library", library: "JVM crypto package", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares a JVM cryptographic package", confidence: 72 },
   { id: "manifest-go-crypto", packages: ["golang.org/x/crypto"], manifestNames: ["go.mod"], algorithm: "Go x/crypto", cryptoRole: "Cryptographic library", library: "golang.org/x/crypto", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares Go extended crypto", confidence: 76 },
+  { id: "manifest-python-cryptography", packages: ["cryptography", "pycryptodome", "pycryptodomex", "pynacl", "pyopenssl", "paramiko"], manifestNames: ["requirements.txt", "pipfile", "pyproject.toml", "setup.cfg"], algorithm: "Python crypto package parameters not observed", cryptoRole: "Cryptographic library", library: "Python crypto package", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares a Python cryptographic package", confidence: 70 },
+  { id: "manifest-js-crypto", packages: ["jose", "jsonwebtoken", "crypto-js", "node-forge", "jwk-to-pem", "tweetnacl"], manifestNames: ["package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml"], algorithm: "JavaScript crypto package parameters not observed", cryptoRole: "Cryptographic library", library: "JavaScript crypto package", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares a JavaScript cryptographic package", confidence: 70 },
+  { id: "manifest-rust-crypto", packages: ["ring", "rustls", "aes-gcm", "rsa", "ed25519-dalek"], manifestNames: ["cargo.toml"], algorithm: "Rust crypto package parameters not observed", cryptoRole: "Cryptographic library", library: "Rust crypto package", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares a Rust cryptographic package", confidence: 70 },
 ];
 
 const CONFIG_RULES: StaticRule[] = [
-  { id: "config-jwt", extensions: [".env", ".yml", ".yaml", ".toml", ".ini", ".cfg", ".conf", ".py", ".dockerfile"], expression: /^\s*(?:JWT_SECRET|JWT_ALGORITHM|jwt_algorithm)\b/im, algorithm: "JWT configuration parameter not observed", cryptoRole: "Token signature", library: "Configuration", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "JWT configuration key detected; its value was not collected", confidence: 65 },
-  { id: "config-encryption", extensions: [".env", ".yml", ".yaml", ".toml", ".ini", ".cfg", ".conf", ".dockerfile"], expression: /^\s*(?:ENCRYPTION_KEY|AES_KEY|TLS_MIN_VERSION|ssl_protocols|ssl_certificate|SSLCertificateFile)\b/im, algorithm: "TLS or encryption configuration parameter not observed", cryptoRole: "Transport or encryption configuration", library: "Configuration", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Cryptographic configuration key detected; its value was not collected", confidence: 64 },
+  { id: "config-jwt", extensions: [".env", ".yml", ".yaml", ".toml", ".ini", ".cfg", ".conf", ".properties", ".dockerfile"], expression: /^\s*(?:JWT_SECRET|JWT_ALGORITHM|jwt_algorithm)\b/im, algorithm: "JWT configuration parameter not observed", cryptoRole: "Token signature", library: "Configuration", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "JWT configuration key detected; its value was not collected", confidence: 65 },
+  { id: "config-encryption", extensions: [".env", ".yml", ".yaml", ".toml", ".ini", ".cfg", ".conf", ".properties", ".dockerfile"], expression: /^\s*(?:ENCRYPTION_KEY|AES_KEY|TLS_MIN_VERSION|ssl_protocols|ssl_certificate|SSLCertificateFile)\b/im, algorithm: "TLS or encryption configuration parameter not observed", cryptoRole: "Transport or encryption configuration", library: "Configuration", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Cryptographic configuration key detected; its value was not collected", confidence: 64 },
+  { id: "config-weak-cipher", extensions: [".env", ".yml", ".yaml", ".toml", ".ini", ".cfg", ".conf", ".properties", ".dockerfile"], expression: /^\s*(?:ssl_ciphers|SSLCipherSuite|CIPHERS)\b.*(?:RC4|DES|3DES|MD5|NULL)/im, algorithm: "Potentially weak cipher configuration", cryptoRole: "Transport security", library: "Configuration", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "High", usageContext: "Weak cipher indicator detected; configuration value was not retained", confidence: 76 },
 ];
 
 export class RepositoryScanError extends Error {
@@ -103,9 +123,9 @@ export function parsePublicGitHubRepository(input: string): PublicGitHubReposito
 }
 
 function extensionFor(path: string) {
-  const filename = path.split("/").at(-1);
-  if (filename === "Dockerfile") return ".dockerfile";
-  if (filename === ".env") return ".env";
+  const filename = path.split("/").at(-1)?.toLowerCase() ?? "";
+  if (filename === "dockerfile") return ".dockerfile";
+  if (filename.startsWith(".env")) return ".env";
   const dot = path.lastIndexOf(".");
   return dot === -1 ? "" : path.slice(dot).toLowerCase();
 }
@@ -189,7 +209,7 @@ export function analyzeRepositoryFiles(repository: PublicGitHubRepository, branc
       findings.push(createFinding(repository, branch, file, { ...rule, extensions: [], expression }, match, "Dependency manifest"));
     }
   }
-  return findings;
+  return deduplicateRepositoryFindings(findings);
 }
 
 type FetchHeaders = { get: (name: string) => string | null } | Record<string, string | undefined>;

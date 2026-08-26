@@ -389,8 +389,17 @@ The repository scanner previously derived `findingKey` values from a truncated s
 
 Finding keys now use a readable normalized rule hint plus a deterministic 16-character SHA-256 fingerprint of the full path and rule. Every generated key is bounded below the database limit while preserving a stable unique identity for direct source, dependency-manifest, and configuration evidence. Fixture coverage verifies two long, similarly prefixed paths produce distinct bounded keys; the repository persistence and rollback suites remain green. TypeScript passed and Vitest completed **78 tests across twenty-six files**.
 
+## Safe git-repository scanner quality upgrade
+
+The bounded static scanner now covers a larger text-only pattern registry across TypeScript/JavaScript, Python, Java, Go, C/C++, and Rust, including Node hash/ECDH/JWT, Python hashlib/bcrypt/Fernet, Java ECDSA/message-digest, Go hashing, OpenSSL EVP, and Rust crypto-library indicators. It also recognizes additional Python, JavaScript, Rust, JVM, and Go dependency declarations; common package lockfiles; Docker Compose, application configuration, `.env.example`, and weak-cipher indicator keys. Configuration matching records only the key indicator and never retains its value.
+
+A confidence-aware deduplication layer merges only equivalent evidence records, preserving the highest confidence and distinct source locations. It does not merge source, dependency-manifest, and configuration evidence with different asset types. The scan-backed CBOM export now identifies itself as CycloneDX 1.6, emits a valid UUID-shaped serial number and version, uses `cryptographic-asset` components, and retains the observed ECDAT-specific evidence through namespaced properties. This mapping follows CycloneDX’s support for cryptographic assets and its 1.6 JSON document identifiers; it does not claim discovery beyond the bounded source evidence. [3] [4]
+
+Fixtures cover the expanded language, manifest, configuration, non-retention, deduplication, key-length, persistence, and bounded-acquisition rules. TypeScript passed and Vitest completed **82 tests across twenty-eight files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
-
 [2] [GitHub REST API troubleshooting](https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api)
+[3] [CycloneDX Specification Overview](https://cyclonedx.org/specification/overview/)
+[4] [CycloneDX 1.6 JSON Schema](https://github.com/CycloneDX/specification/blob/master/schema/bom-1.6.schema.json)

@@ -179,3 +179,9 @@
 - [x] Diagnose the repository-scan finding insert failure and identify conflicting generated finding keys.
 - [x] Make repository-scan finding identifiers collision-safe while preserving distinct direct, dependency, and configuration evidence.
 - [x] Verify successful persistence, transaction safety, TypeScript, and Vitest; document and checkpoint the repair.
+- [x] Compare the proposed multi-layer real-scanner plan with ECDAT’s existing bounded static scanner and identify only safe incremental gaps.
+- [x] Confirm the next approved scanner capability before changing repository acquisition, analysis, or persistence behavior.
+- [x] Design the modular bounded git-repository detection registry, output classification, and confidence-aware evidence-deduplication contract.
+- [x] Expand safe source, manifest, and configuration detection without cloning, executing, or retaining secret values from repository content.
+- [x] Improve evidence persistence and CycloneDX-oriented CBOM export mapping for direct and indirect repository findings.
+- [x] Verify acquisition limits, quality fixtures, persistence, exports, TypeScript, and Vitest; document and checkpoint the scanner quality upgrade.

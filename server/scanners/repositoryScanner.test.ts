@@ -47,6 +47,19 @@ describe("repository scanner MVP", () => {
     expect(findings.every(finding => finding.findingKey.length <= 48)).toBe(true);
   });
 
+  it("recognizes expanded language, manifest, and safe configuration indicators", () => {
+    const findings = analyzeRepositoryFiles(repository, "main", [
+      { path: "src/token.ts", content: "import jwt from 'jsonwebtoken';\nconst digest = createHash('sha256');" },
+      { path: "src/security.py", content: "import hashlib\nvalue = hashlib.sha256(b'payload')\nfrom cryptography.fernet import Fernet" },
+      { path: "src/signing.java", content: "Signature.getInstance('SHA256withECDSA');" },
+      { path: "src/transport.rs", content: "use ring::signature;" },
+      { path: "Cargo.toml", content: "[dependencies]\nring = '0.17'" },
+      { path: ".env.example", content: "CIPHERS=RC4-SHA\nJWT_SECRET=example" },
+    ]);
+    expect(findings.map(finding => finding.algorithm)).toEqual(expect.arrayContaining(["JWT algorithm not observed", "sha256", "Fernet", "ECDSA", "Rust crypto primitive not observed", "Rust crypto package parameters not observed", "Potentially weak cipher configuration"]));
+    expect(findings.every(finding => !finding.evidence.includes("JWT_SECRET=example"))).toBe(true);
+  });
+
   it("uses bounded GitHub metadata and raw-source requests without cloning repositories", async () => {
     const requests: string[] = [];
     const fetcher = async (url: string) => {

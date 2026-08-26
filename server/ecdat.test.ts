@@ -32,14 +32,15 @@ describe("ECDAT risk intelligence", () => {
       findings: scenario.findings,
     });
     expect(cbom.components).toHaveLength(scenario.findings.length);
-    expect(cbom.components[0]?.properties.some(property => property.name === "ecdat:provenance")).toBe(true);
+    expect(cbom).toMatchObject({ bomFormat: "CycloneDX", specVersion: "1.6", version: 1 });
+    expect(cbom.components[0]?.properties.some(property => property.name === "org.ecdat:provenance")).toBe(true);
   });
 
   it("builds no-database seeded preview exports with the same CBOM evidence shape", () => {
     const scenario = getSeededScenario("python-web");
     const payload = buildSeededPreviewExport(scenario, new Date("2026-08-24T00:00:00Z"));
     expect(payload.source).toBe("seeded-preview");
-    expect(payload.cbom.serialNumber).toBe("urn:uuid:preview_python-web");
+    expect(payload.cbom.serialNumber).toMatch(/^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-8[0-9a-f]{3}-[0-9a-f]{12}$/);
     expect(payload.cbom.components).toHaveLength(scenario.findings.length);
     expect(payload.reportHtml).toContain(scenario.displayName);
   });
