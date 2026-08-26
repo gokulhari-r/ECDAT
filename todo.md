@@ -112,3 +112,4 @@
 - [x] Add a traceable evidence chain with observed/derived/estimated/recommended status, and connect valid report actions to Graph, Spatial Mode, Roadmap, and implemented exports.
 - [x] Add tests and responsive browser verification for the Evidence & Reports page, then document and checkpoint the completed redesign.
 - [x] Add a CBOM Explorer HTML download action alongside the existing structured JSON export, then verify and checkpoint it.
+- [x] Confirm the CBOM Explorer visibly presents HTML export beside JSON export in the current deployed Evidence & Reports view.
