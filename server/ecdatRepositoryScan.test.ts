@@ -45,4 +45,12 @@ describe("ECDAT static repository scan persistence", () => {
     expect(result.scan.scenario).toBe("repository-static");
     expect(result.findings[0]?.evidence).toContain("not executed");
   });
+
+  it("treats manifest-only wrapper evidence as a persistable repository-static finding", async () => {
+    const repository = parsePublicGitHubRepository("https://github.com/example/wrapped-security");
+    const findings = analyzeRepositoryFiles(repository, "main", [{ path: "requirements.txt", content: "passlib==1.7.4\nPyJWT==2.8.0" }]);
+    expect(findings).toHaveLength(2);
+    expect(findings.every(finding => finding.assetType === "Dependency manifest")).toBe(true);
+    expect(findings.every(finding => finding.evidence.includes("not executed"))).toBe(true);
+  });
 });

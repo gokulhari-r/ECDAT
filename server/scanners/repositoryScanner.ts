@@ -6,7 +6,8 @@ const MAX_FILES = 40;
 const MAX_FILE_BYTES = 120_000;
 const MAX_TOTAL_BYTES = 600_000;
 const MAX_ARCHIVE_BYTES = 3_000_000;
-const ALLOWED_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".java", ".go"]);
+const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".java", ".go"]);
+const ANALYSIS_FILENAMES = new Set(["requirements.txt", "pyproject.toml", "setup.cfg", "package.json", "pom.xml", "build.gradle", "go.mod", "dockerfile", ".env", "nginx.conf"]);
 const EXCLUDED_PATH_SEGMENTS = new Set([".git", "node_modules", "vendor", "dist", "build", "coverage"]);
 
 export type PublicGitHubRepository = {
@@ -35,6 +36,8 @@ type StaticRule = {
   quantumRisk: string;
   classicalRisk: string;
   usageContext: string;
+  confidence?: number;
+  deriveAlgorithm?: (content: string) => string;
 };
 
 const STATIC_RULES: StaticRule[] = [
@@ -43,11 +46,34 @@ const STATIC_RULES: StaticRule[] = [
   { id: "webcrypto-rsa", extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"], expression: /(?:RSA-OAEP|RSASSA-PKCS1-v1_5|RSA-PSS)/i, algorithm: "RSA", cryptoRole: "Encryption or signature", library: "Web Crypto API", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Web Crypto RSA algorithm identifier detected" },
   { id: "python-aesgcm", extensions: [".py"], expression: /\bAESGCM\s*\(/, algorithm: "AES-GCM", cryptoRole: "Encryption", library: "cryptography", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Python AES-GCM construction detected" },
   { id: "python-rsa", extensions: [".py"], expression: /rsa\.generate_private_key\s*\(/, algorithm: "RSA", cryptoRole: "Key establishment or signature", library: "cryptography", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Python RSA key generation detected" },
+  { id: "python-passlib", extensions: [".py"], expression: /(?:from\s+passlib(?:\.|\s+import)|import\s+passlib|CryptContext\s*\()/i, algorithm: "Password hashing scheme not observed", cryptoRole: "Password hashing", library: "passlib", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "passlib wrapper-library usage detected", confidence: 85, deriveAlgorithm: content => content.match(/(?:schemes\s*=\s*\[|scheme\s*=\s*["'])(?:\s*["'])?([A-Za-z0-9_-]+)/i)?.[1] ?? "Password hashing scheme not observed" },
+  { id: "python-pyjwt", extensions: [".py"], expression: /(?:import\s+jwt\b|from\s+jwt\s+import|from\s+PyJWT\b|jwt\.(?:encode|decode)\s*\()/i, algorithm: "JWT algorithm not observed", cryptoRole: "Token signature", library: "PyJWT", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "PyJWT wrapper-library usage detected", confidence: 88, deriveAlgorithm: content => content.match(/algorithm\s*=\s*["']([A-Za-z0-9-]+)["']/i)?.[1] ?? "JWT algorithm not observed" },
+  { id: "python-argon2", extensions: [".py"], expression: /(?:from\s+argon2\b|import\s+argon2\b)/i, algorithm: "Argon2", cryptoRole: "Password hashing", library: "argon2-cffi", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Argon2 wrapper-library usage detected", confidence: 92 },
+  { id: "python-jose", extensions: [".py"], expression: /(?:from\s+jose\b|import\s+jose\b|from\s+python_jwt\b)/i, algorithm: "JOSE algorithm not observed", cryptoRole: "Token signature", library: "JOSE", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "JOSE wrapper-library usage detected", confidence: 86 },
+  { id: "python-ssl", extensions: [".py"], expression: /(?:from\s+ssl\s+import|import\s+ssl\b|from\s+OpenSSL\b|import\s+OpenSSL\b|import\s+paramiko\b)/i, algorithm: "TLS or SSH parameters not observed", cryptoRole: "Transport security", library: "Python SSL wrapper", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Python transport-security wrapper usage detected", confidence: 78 },
   { id: "java-aes-gcm", extensions: [".java"], expression: /Cipher\.getInstance\s*\(\s*["'`]AES\/GCM/i, algorithm: "AES-GCM", cryptoRole: "Encryption", library: "Java Cryptography Architecture", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Java AES-GCM cipher construction detected" },
   { id: "java-rsa", extensions: [".java"], expression: /(?:KeyPairGenerator|Signature)\.getInstance\s*\(\s*["'`](?:RSA|SHA\d+withRSA)/i, algorithm: "RSA", cryptoRole: "Key establishment or signature", library: "Java Cryptography Architecture", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Java RSA primitive selection detected" },
   { id: "go-aes", extensions: [".go"], expression: /aes\.NewCipher\s*\(/, algorithm: "AES", cryptoRole: "Encryption", library: "Go crypto", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Go AES cipher construction detected" },
   { id: "go-rsa", extensions: [".go"], expression: /rsa\.(?:GenerateKey|EncryptOAEP|Sign)/, algorithm: "RSA", cryptoRole: "Key establishment or signature", library: "Go crypto", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Go RSA operation detected" },
   { id: "go-ecdsa", extensions: [".go"], expression: /ecdsa\.(?:GenerateKey|Sign|Verify)/, algorithm: "ECDSA", cryptoRole: "Signature", library: "Go crypto", quantumVulnerable: true, quantumRisk: "High", classicalRisk: "Low", usageContext: "Go ECDSA operation detected" },
+];
+
+type DependencyRule = Omit<StaticRule, "extensions" | "expression" | "deriveAlgorithm"> & { packages: string[]; manifestNames: string[] };
+
+const DEPENDENCY_RULES: DependencyRule[] = [
+  { id: "manifest-passlib", packages: ["passlib"], manifestNames: ["requirements.txt", "pyproject.toml", "setup.cfg"], algorithm: "Password hashing scheme not observed", cryptoRole: "Password hashing", library: "passlib", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Dependency manifest declares passlib", confidence: 72 },
+  { id: "manifest-pyjwt", packages: ["pyjwt"], manifestNames: ["requirements.txt", "pyproject.toml", "setup.cfg"], algorithm: "JWT algorithm not observed", cryptoRole: "Token signature", library: "PyJWT", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares PyJWT", confidence: 76 },
+  { id: "manifest-argon2", packages: ["argon2-cffi", "argon2_cffi"], manifestNames: ["requirements.txt", "pyproject.toml", "setup.cfg"], algorithm: "Argon2", cryptoRole: "Password hashing", library: "argon2-cffi", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Dependency manifest declares Argon2 support", confidence: 80 },
+  { id: "manifest-jose", packages: ["python-jose", "jose"], manifestNames: ["requirements.txt", "pyproject.toml", "setup.cfg", "package.json"], algorithm: "JOSE algorithm not observed", cryptoRole: "Token signature", library: "JOSE", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares JOSE support", confidence: 74 },
+  { id: "manifest-bcrypt", packages: ["bcrypt"], manifestNames: ["requirements.txt", "pyproject.toml", "setup.cfg", "package.json"], algorithm: "bcrypt", cryptoRole: "Password hashing", library: "bcrypt", quantumVulnerable: false, quantumRisk: "Low", classicalRisk: "Low", usageContext: "Dependency manifest declares bcrypt", confidence: 82 },
+  { id: "manifest-crypto-js", packages: ["crypto-js", "node-forge", "jsonwebtoken"], manifestNames: ["package.json"], algorithm: "Cryptographic package parameters not observed", cryptoRole: "Cryptographic library", library: "JavaScript crypto package", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares a JavaScript cryptographic package", confidence: 72 },
+  { id: "manifest-bouncycastle", packages: ["bouncycastle", "nimbus-jose-jwt", "spring-security-crypto"], manifestNames: ["pom.xml", "build.gradle"], algorithm: "JVM cryptographic package parameters not observed", cryptoRole: "Cryptographic library", library: "JVM crypto package", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares a JVM cryptographic package", confidence: 72 },
+  { id: "manifest-go-crypto", packages: ["golang.org/x/crypto"], manifestNames: ["go.mod"], algorithm: "Go x/crypto", cryptoRole: "Cryptographic library", library: "golang.org/x/crypto", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Dependency manifest declares Go extended crypto", confidence: 76 },
+];
+
+const CONFIG_RULES: StaticRule[] = [
+  { id: "config-jwt", extensions: [".env", ".yml", ".yaml", ".toml", ".ini", ".cfg", ".conf", ".py", ".dockerfile"], expression: /^\s*(?:JWT_SECRET|JWT_ALGORITHM|jwt_algorithm)\b/im, algorithm: "JWT configuration parameter not observed", cryptoRole: "Token signature", library: "Configuration", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "JWT configuration key detected; its value was not collected", confidence: 65 },
+  { id: "config-encryption", extensions: [".env", ".yml", ".yaml", ".toml", ".ini", ".cfg", ".conf", ".dockerfile"], expression: /^\s*(?:ENCRYPTION_KEY|AES_KEY|TLS_MIN_VERSION|ssl_protocols|ssl_certificate|SSLCertificateFile)\b/im, algorithm: "TLS or encryption configuration parameter not observed", cryptoRole: "Transport or encryption configuration", library: "Configuration", quantumVulnerable: false, quantumRisk: "Not inferred", classicalRisk: "Not inferred", usageContext: "Cryptographic configuration key detected; its value was not collected", confidence: 64 },
 ];
 
 export class RepositoryScanError extends Error {
@@ -76,15 +102,17 @@ export function parsePublicGitHubRepository(input: string): PublicGitHubReposito
 }
 
 function extensionFor(path: string) {
-  if (path === "Dockerfile") return ".dockerfile";
+  const filename = path.split("/").at(-1);
+  if (filename === "Dockerfile") return ".dockerfile";
+  if (filename === ".env") return ".env";
   const dot = path.lastIndexOf(".");
   return dot === -1 ? "" : path.slice(dot).toLowerCase();
 }
 
-function isAllowedSourcePath(path: string, size: number) {
+function isAllowedAnalysisPath(path: string, size: number) {
   const segments = path.split("/");
   if (segments.some(segment => EXCLUDED_PATH_SEGMENTS.has(segment)) || path.endsWith(".min.js") || size > MAX_FILE_BYTES) return false;
-  return ALLOWED_EXTENSIONS.has(extensionFor(path));
+  return SOURCE_EXTENSIONS.has(extensionFor(path)) || ANALYSIS_FILENAMES.has(path.split("/").at(-1)?.toLowerCase() ?? "");
 }
 
 function lineNumber(content: string, offset: number) {
@@ -95,51 +123,63 @@ function safeKeyPart(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 28);
 }
 
+function createFinding(repository: PublicGitHubRepository, branch: string, file: RepositorySourceFile, rule: StaticRule, match: RegExpExecArray, assetType: "Source file" | "Dependency manifest" | "Configuration file"): SeedFinding {
+  const assessment = evaluateFindingRisk({ quantumVulnerable: rule.quantumVulnerable, sensitivity: "Not classified", fallbackDataLifetimeYears: 0, fallbackMigrationMonths: 0, crqcHorizonYears: 9 });
+  const location = `${repository.owner}/${repository.repository}@${branch}:${file.path}:${lineNumber(file.content, match.index ?? 0)}`;
+  return {
+    findingKey: `repo-${safeKeyPart(file.path)}-${rule.id}`,
+    assetName: file.path,
+    assetType,
+    algorithm: rule.deriveAlgorithm?.(file.content) ?? rule.algorithm,
+    cryptoRole: rule.cryptoRole,
+    library: rule.library,
+    version: null,
+    sourceLocation: location,
+    usageContext: rule.usageContext,
+    dataState: "Not inferred from static analysis",
+    environment: "Public source repository",
+    sensitivity: "Not classified",
+    criticality: "Not classified",
+    riskLevel: assessment.level,
+    classicalRisk: rule.classicalRisk,
+    quantumRisk: rule.quantumRisk,
+    quantumVulnerable: rule.quantumVulnerable,
+    hndlExposure: assessment.hndlExposure,
+    dataLifetimeYears: assessment.dataLifetimeYears,
+    migrationMonths: assessment.migrationMonths,
+    confidence: rule.confidence ?? 76,
+    evidence: `Static ${assetType.toLowerCase()} pattern ${rule.id} matched at ${location}. Repository content was read as text and was not executed.`,
+    provenance: `Bounded public GitHub static analysis of ${repository.canonicalUrl} at branch ${branch}.`,
+  };
+}
+
+function dependencyExpression(packages: string[]) {
+  return new RegExp(`(?:^|[\\s"'/:<>=])(${packages.map(value => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?:[\\s"'@<>=:;,]|$)`, "im");
+}
+
 export function analyzeRepositoryFiles(repository: PublicGitHubRepository, branch: string, files: RepositorySourceFile[]): SeedFinding[] {
   const findings: SeedFinding[] = [];
   const seen = new Set<string>();
   for (const file of files) {
     const extension = extensionFor(file.path);
-    for (const rule of STATIC_RULES) {
+    const filename = file.path.split("/").at(-1)?.toLowerCase() ?? "";
+    const applicableRules = [...STATIC_RULES, ...CONFIG_RULES];
+    for (const rule of applicableRules) {
       if (!rule.extensions.includes(extension)) continue;
       const match = rule.expression.exec(file.content);
       if (!match || match.index === undefined) continue;
       const identity = `${file.path}:${rule.id}`;
       if (seen.has(identity)) continue;
       seen.add(identity);
-      const assessment = evaluateFindingRisk({
-        quantumVulnerable: rule.quantumVulnerable,
-        sensitivity: "Not classified",
-        fallbackDataLifetimeYears: 0,
-        fallbackMigrationMonths: 0,
-        crqcHorizonYears: 9,
-      });
-      const location = `${repository.owner}/${repository.repository}@${branch}:${file.path}:${lineNumber(file.content, match.index)}`;
-      findings.push({
-        findingKey: `repo-${safeKeyPart(file.path)}-${rule.id}`,
-        assetName: file.path,
-        assetType: "Source file",
-        algorithm: rule.algorithm,
-        cryptoRole: rule.cryptoRole,
-        library: rule.library,
-        version: null,
-        sourceLocation: location,
-        usageContext: rule.usageContext,
-        dataState: "Not inferred from static analysis",
-        environment: "Public source repository",
-        sensitivity: "Not classified",
-        criticality: "Not classified",
-        riskLevel: assessment.level,
-        classicalRisk: rule.classicalRisk,
-        quantumRisk: rule.quantumRisk,
-        quantumVulnerable: rule.quantumVulnerable,
-        hndlExposure: assessment.hndlExposure,
-        dataLifetimeYears: assessment.dataLifetimeYears,
-        migrationMonths: assessment.migrationMonths,
-        confidence: 76,
-        evidence: `Static source pattern ${rule.id} matched at ${location}. Repository content was read as text and was not executed.`,
-        provenance: `Bounded public GitHub static analysis of ${repository.canonicalUrl} at branch ${branch}.`,
-      });
+      findings.push(createFinding(repository, branch, file, rule, match, CONFIG_RULES.includes(rule) ? "Configuration file" : "Source file"));
+    }
+    for (const rule of DEPENDENCY_RULES) {
+      if (!rule.manifestNames.includes(filename)) continue;
+      const expression = dependencyExpression(rule.packages);
+      const match = expression.exec(file.content);
+      if (!match || match.index === undefined || seen.has(`${file.path}:${rule.id}`)) continue;
+      seen.add(`${file.path}:${rule.id}`);
+      findings.push(createFinding(repository, branch, file, { ...rule, extensions: [], expression }, match, "Dependency manifest"));
     }
   }
   return findings;
@@ -198,7 +238,7 @@ function extractArchiveSourceFiles(archive: Uint8Array) {
   const unzip = new Unzip(file => {
     const path = file.name.replace(/^[^/]+\//, "");
     const expectedBytes = file.originalSize ?? 0;
-    if (files.length >= MAX_FILES || !isAllowedSourcePath(path, expectedBytes) || expectedBytes > MAX_FILE_BYTES || uncompressedBytes + expectedBytes > MAX_TOTAL_BYTES) return;
+    if (files.length >= MAX_FILES || !isAllowedAnalysisPath(path, expectedBytes) || expectedBytes > MAX_FILE_BYTES || uncompressedBytes + expectedBytes > MAX_TOTAL_BYTES) return;
     const chunks: Uint8Array[] = [];
     let size = 0;
     file.ondata = (error, data, final) => {
@@ -256,7 +296,7 @@ export async function scanPublicGitHubRepository(repositoryUrl: string, fetcher:
   const branch = metadata.default_branch;
   if (!branch || !/^[A-Za-z0-9._/-]+$/.test(branch)) throw new RepositoryScanError("The public repository did not provide a valid default branch.");
   const tree = await fetchJson<{ tree?: Array<{ path?: string; type?: string; size?: number }> }>(`https://api.github.com/repos/${repository.owner}/${repository.repository}/git/trees/${encodeURIComponent(branch)}?recursive=1`, fetcher);
-  const candidates = (tree.tree ?? []).filter(item => item.type === "blob" && typeof item.path === "string" && isAllowedSourcePath(item.path, item.size ?? 0)).slice(0, MAX_FILES);
+  const candidates = (tree.tree ?? []).filter(item => item.type === "blob" && typeof item.path === "string" && isAllowedAnalysisPath(item.path, item.size ?? 0)).sort((left, right) => Number(ANALYSIS_FILENAMES.has((right.path ?? "").split("/").at(-1)?.toLowerCase() ?? "")) - Number(ANALYSIS_FILENAMES.has((left.path ?? "").split("/").at(-1)?.toLowerCase() ?? ""))).slice(0, MAX_FILES);
   const files: RepositorySourceFile[] = [];
   let byteBudget = MAX_TOTAL_BYTES;
   for (const candidate of candidates) {

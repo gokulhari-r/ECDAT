@@ -49,7 +49,7 @@ export const appRouter = router({
           if (error instanceof RepositoryScanError) {
             return { status: "unavailable" as const, message: error.code === "access" ? "That public GitHub repository could not be read. Check that the repository exists and is publicly accessible." : error.message };
           }
-          if (error instanceof Error && error.message.startsWith("No supported cryptographic source patterns")) {
+          if (error instanceof Error && error.message.startsWith("No supported cryptographic source")) {
             return { status: "unavailable" as const, message: error.message };
           }
           throw error;

@@ -101,7 +101,7 @@ export async function createRepositoryStaticScan(
   scanner: (url: string) => Promise<RepositoryScanResult> = scanPublicGitHubRepository
 ) {
   const analysis = await scanner(repositoryUrl);
-  if (!analysis.findings.length) throw new Error("No supported cryptographic source patterns were found in the bounded static-analysis sample.");
+  if (!analysis.findings.length) throw new Error("No supported cryptographic source, dependency-manifest, or safe configuration indicators were found in the bounded static-analysis sample.");
   const db = await requiredDb();
   const scanKey = `scan_${nanoid(10)}`;
   const displayName = `${analysis.repository.owner}/${analysis.repository.repository}`;

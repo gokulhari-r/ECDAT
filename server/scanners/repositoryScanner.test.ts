@@ -25,6 +25,18 @@ describe("repository scanner MVP", () => {
     expect(findings.every(finding => finding.evidence.includes("not executed"))).toBe(true);
   });
 
+  it("detects wrapper libraries, dependency declarations, and configuration keys without retaining secret values", () => {
+    const findings = analyzeRepositoryFiles(repository, "main", [
+      { path: "backend/app/security.py", content: "from passlib.context import CryptContext\ncontext = CryptContext(schemes=['argon2'])\nimport jwt\ntoken = jwt.encode(payload, key, algorithm='HS256')" },
+      { path: "requirements.txt", content: "passlib==1.7.4\nPyJWT>=2.8.0\nargon2-cffi==23.1.0" },
+      { path: ".env", content: "JWT_SECRET=do-not-retain-this-value" },
+    ]);
+    expect(findings.map(finding => finding.algorithm)).toEqual(expect.arrayContaining(["argon2", "HS256", "Password hashing scheme not observed", "JWT algorithm not observed", "Argon2", "JWT configuration parameter not observed"]));
+    expect(findings.some(finding => finding.assetType === "Dependency manifest")).toBe(true);
+    expect(findings.some(finding => finding.assetType === "Configuration file")).toBe(true);
+    expect(findings.every(finding => !finding.evidence.includes("do-not-retain-this-value"))).toBe(true);
+  });
+
   it("uses bounded GitHub metadata and raw-source requests without cloning repositories", async () => {
     const requests: string[] = [];
     const fetcher = async (url: string) => {
@@ -38,6 +50,20 @@ describe("repository scanner MVP", () => {
     expect(result.findings[0]?.algorithm).toBe("AES");
     expect(requests).toHaveLength(3);
     expect(requests.some(request => request.includes("git clone"))).toBe(false);
+  });
+
+  it("prioritizes small allowed manifest files in the bounded GitHub request set", async () => {
+    const requests: string[] = [];
+    const fetcher = async (url: string) => {
+      requests.push(url);
+      if (url.includes("/repos/example/crypto-service") && !url.includes("/git/trees/")) return { ok: true, status: 200, json: async () => ({ default_branch: "main" }), text: async () => "", arrayBuffer: async () => new ArrayBuffer(0) };
+      if (url.includes("/git/trees/")) return { ok: true, status: 200, json: async () => ({ tree: [{ path: "requirements.txt", type: "blob", size: 30 }, { path: "src/app.py", type: "blob", size: 80 }] }), text: async () => "", arrayBuffer: async () => new ArrayBuffer(0) };
+      return { ok: true, status: 200, json: async () => ({}), text: async () => url.endsWith("requirements.txt") ? "PyJWT>=2.8" : "import jwt", arrayBuffer: async () => new ArrayBuffer(0) };
+    };
+    const result = await scanPublicGitHubRepository("https://github.com/example/crypto-service", fetcher);
+    expect(result.scannedFileCount).toBe(2);
+    expect(result.findings.some(finding => finding.assetType === "Dependency manifest")).toBe(true);
+    expect(requests.some(request => request.endsWith("requirements.txt"))).toBe(true);
   });
 
   it("falls back to a bounded GitHub archive when metadata is rate limited", async () => {

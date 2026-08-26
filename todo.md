@@ -173,3 +173,6 @@
 - [x] Prevent seeded scenario placeholder targets and malformed public targets from triggering repository-analysis mutations.
 - [x] Make real public-repository analysis an explicit user action with clear unavailable-state guidance and no unhandled mutation errors.
 - [x] Verify the corrected scan intake, rate-limit handling, TypeScript, and Vitest; document and checkpoint the fix.
+- [x] Reconcile the proposed wrapper-library, dependency-manifest, and configuration detection plan with ECDAT’s bounded public-source scanner safeguards.
+- [x] Add safe static detection for wrapper libraries, dependency manifests, and configuration indicators without reading secrets or executing repository content.
+- [x] Persist classified direct and indirect crypto evidence with clear confidence/provenance, then verify fixtures, TypeScript, Vitest, and checkpoint the scanner upgrade.

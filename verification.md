@@ -375,6 +375,14 @@ Seeded scenario cards no longer place their illustrative repository placeholders
 
 Expected availability outcomes are now returned by the protected repository endpoint as successful `unavailable` responses, not mutation errors. A missing or inaccessible public repository receives clear guidance; rate limiting retains its retry guidance; and neither outcome writes scan records. Router tests cover both paths, while the Command Center capture confirms the cleared scenario intake. TypeScript passed and Vitest completed **74 tests across twenty-six files**.
 
+## Bounded wrapper, manifest, and configuration detection
+
+The static scanner now recognizes selected Python wrapper libraries such as passlib, PyJWT, Argon2, JOSE, and Python transport-security wrappers, in addition to the existing direct RSA, ECDSA, AES, Java, JavaScript, and Go patterns. Where a wrapper call declares an algorithm, such as a passlib scheme or JWT algorithm parameter, that value is reported; otherwise, the finding explicitly says that parameters were not observed.
+
+Small, allowlisted dependency manifests (`requirements.txt`, `pyproject.toml`, `setup.cfg`, `package.json`, `pom.xml`, `build.gradle`, and `go.mod`) are prioritized within the same bounded 40-file/600 KB analysis budget. Recognized package declarations produce separate **Dependency manifest** evidence rather than asserting runtime use. `.env`, Dockerfile, and selected configuration indicators are also detected as **Configuration file** evidence; only key names are matched and configuration values are not retained. No repository content is cloned, built, installed, or executed.
+
+Indirect evidence now persists through the existing repository-static scan flow with file location, confidence, and static-analysis provenance. The no-match message now accurately covers source, dependency-manifest, and safe configuration indicators. Fixtures cover wrapper algorithms, manifest-only evidence, manifest prioritization, configuration key detection, and non-retention of a secret fixture value. TypeScript passed and Vitest completed **77 tests across twenty-six files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
