@@ -119,4 +119,9 @@
 - [x] Consolidate navigation to `/migration` while preserving legacy recommendation/roadmap URLs and finding-context links as safe compatibility routes.
 - [x] Add regression coverage and complete desktop/mobile, saved/seeded, empty/error, plan lifecycle, and cross-route verification; document and checkpoint the Migration workspace.
 - [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.
+- [x] Audit the supplied decision-and-execution Migration roadmap specification against active scan fields, generated guidance, relationship evidence, and existing routes.
+- [x] Rebuild the Migration posture and prioritisation experience from scratch with scan-derived readiness, urgency-versus-effort analysis, and explainable candidate selection.
+- [x] Rebuild selected-candidate detail with current-to-target architecture, evidence-backed impact, relative effort, Mosca decision context, wave/dependency scheduling, and execution status.
+- [x] Preserve contextual links to CBOM, Dependency Graph, and existing `/migration` compatibility routes while replacing the prior Migration presentation.
+- [x] Add tests and verify saved, seeded, loading, empty, error, desktop, and mobile Migration states; document and checkpoint the from-scratch rebuild.
 - [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.
