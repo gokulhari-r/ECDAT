@@ -48,6 +48,7 @@ export const ecdatScans = mysqlTable(
       "java-enterprise",
       "container-mesh",
       "compliance-heavy",
+      "repository-static",
     ]).notNull(),
     status: mysqlEnum("status", ["completed", "processing", "failed"]).default("completed").notNull(),
     totalAssets: int("totalAssets").notNull(),

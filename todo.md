@@ -165,3 +165,6 @@
 - [x] Make the Command Center Scan action visually prominent while preserving all accessibility and loading behavior.
 - [x] Reset the scan form to a submission-ready state whenever the user re-enters Command Center after a completed scan.
 - [x] Verify bright Scan action treatment, re-entry behavior, TypeScript, and Vitest; document and checkpoint the update.
+- [x] Define a safe static repository-scanner MVP with URL validation, bounded repository acquisition, allowlisted text analysis, and no execution of cloned content.
+- [x] Implement static cryptographic pattern detection against a local repository fixture and convert detections into evidence-backed ECDAT findings.
+- [x] Integrate the repository-scanner MVP into the existing scan flow without replacing seeded scenarios, then verify security controls, persistence, TypeScript, and Vitest.

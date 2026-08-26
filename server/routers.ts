@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { createScenarioRun, getExportPayload, getScanDetail, listUserScans, saveMoscaAssumptions } from "./ecdat";
+import { createRepositoryStaticScan, createScenarioRun, getExportPayload, getScanDetail, listUserScans, saveMoscaAssumptions } from "./ecdat";
 import { buildCopilotOutputSchema, buildCryptoAnalystPrompt, parseCopilotReply } from "./ecdatCopilot";
 import { buildSeededPreviewExport } from "./ecdatPreviewExport";
 import { getSeededScenario, scenarioCatalog, scenarioIds } from "./ecdatSeed";
@@ -38,6 +38,9 @@ export const appRouter = router({
     runDemo: protectedProcedure
       .input(z.object({ scenario: z.enum(scenarioIds), repositoryUrl: z.string().url().optional() }))
       .mutation(({ ctx, input }) => createScenarioRun(ctx.user.id, input.scenario, input.repositoryUrl)),
+    scanRepository: protectedProcedure
+      .input(z.object({ repositoryUrl: z.string().url().max(500) }))
+      .mutation(({ ctx, input }) => createRepositoryStaticScan(ctx.user.id, input.repositoryUrl)),
     scans: protectedProcedure.query(({ ctx }) => listUserScans(ctx.user.id)),
     detail: protectedProcedure
       .input(z.object({ scanKey: z.string().min(1) }))

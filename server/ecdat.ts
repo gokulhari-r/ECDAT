@@ -11,8 +11,9 @@ import { getDb } from "./db";
 import { buildCycloneDxOrientedCbom, buildExecutiveHtml } from "./ecdatExport";
 import { buildBlastRadius, deriveRemediationWaves } from "./ecdatGraph";
 import { evaluateFindingRisk, summarizeEvaluatedFindings } from "./ecdatRisk";
-import { getSeededScenario, type ScenarioId, type SeedScenario } from "./ecdatSeed";
+import { getSeededScenario, recommendationsFor, relationshipsFor, type ScenarioId, type SeedFinding, type SeedScenario, type SeedWave } from "./ecdatSeed";
 import { nanoid } from "nanoid";
+import { scanPublicGitHubRepository, type RepositoryScanResult } from "./scanners/repositoryScanner";
 
 function requiredDb() {
   return getDb().then(db => {
@@ -63,6 +64,76 @@ export async function createScenarioRun(userId: number, scenarioId: ScenarioId, 
     await tx.insert(ecdatAssumptions).values(rows.assumptions);
   });
 
+  return getScanDetail(userId, scanKey);
+}
+
+function buildRepositoryWaves(findings: SeedFinding[]): SeedWave[] {
+  const quantumFindings = findings.filter(finding => finding.quantumVulnerable);
+  return [
+    {
+      wave: 1,
+      title: "Validate static-analysis findings",
+      rationale: `${findings.length} source-file finding${findings.length === 1 ? "" : "s"} were identified by bounded static analysis and require owner validation before change planning.`,
+      scope: findings.map(finding => finding.sourceLocation).join("; "),
+      indicativeEffort: "Indicative: 1–3 engineering days",
+      dependencies: "Confirm runtime paths, key sizes, data classification, and deployed-library versions before remediation.",
+    },
+    {
+      wave: 2,
+      title: "Modernize discovered public-key usage",
+      rationale: `${quantumFindings.length} static finding${quantumFindings.length === 1 ? "" : "s"} use public-key cryptography that merits migration assessment under current planning inputs.`,
+      scope: quantumFindings.map(finding => finding.sourceLocation).join("; ") || "No quantum-vulnerable static pattern was found.",
+      indicativeEffort: "Indicative: 2–6 engineer-weeks",
+      dependencies: "Validate protocol, peer, certificate, and library compatibility before rollout.",
+    },
+  ];
+}
+
+function repositoryReadiness(findings: SeedFinding[]) {
+  const quantumCount = findings.filter(finding => finding.quantumVulnerable).length;
+  const highClassicalCount = findings.filter(finding => finding.classicalRisk === "High").length;
+  return Math.max(0, Math.min(100, 100 - quantumCount * 17 - highClassicalCount * 9));
+}
+
+export async function createRepositoryStaticScan(
+  userId: number,
+  repositoryUrl: string,
+  scanner: (url: string) => Promise<RepositoryScanResult> = scanPublicGitHubRepository
+) {
+  const analysis = await scanner(repositoryUrl);
+  if (!analysis.findings.length) throw new Error("No supported cryptographic source patterns were found in the bounded static-analysis sample.");
+  const db = await requiredDb();
+  const scanKey = `scan_${nanoid(10)}`;
+  const displayName = `${analysis.repository.owner}/${analysis.repository.repository}`;
+  const recommendations = recommendationsFor(analysis.findings);
+  const relationships = relationshipsFor(displayName, "repository-static", analysis.findings);
+  const waves = buildRepositoryWaves(analysis.findings);
+  const metrics = summarizeEvaluatedFindings(analysis.findings);
+
+  await db.transaction(async tx => {
+    await tx.insert(ecdatScans).values({
+      scanKey,
+      userId,
+      displayName,
+      repositoryUrl: analysis.repository.canonicalUrl,
+      scenario: "repository-static",
+      status: "completed",
+      totalAssets: new Set(analysis.findings.map(finding => finding.assetName)).size,
+      criticalCount: metrics.criticalCount,
+      quantumVulnerableCount: metrics.quantumVulnerableCount,
+      hndlCount: metrics.hndlCount,
+      quantumReadiness: repositoryReadiness(analysis.findings),
+    });
+    await tx.insert(ecdatFindings).values(analysis.findings.map(finding => ({ ...finding, scanKey })));
+    if (recommendations.length) await tx.insert(ecdatRecommendations).values(recommendations.map(recommendation => ({ ...recommendation, scanKey, status: "open" as const })));
+    if (relationships.length) await tx.insert(ecdatRelationships).values(relationships.map(relationship => ({ ...relationship, scanKey })));
+    await tx.insert(ecdatMigrationWaves).values(waves.map(wave => ({ ...wave, scanKey })));
+    await tx.insert(ecdatAssumptions).values([
+      { scanKey, assumptionKey: "data-lifetime", label: "Representative data lifetime", value: "0", unit: "years", source: "Not inferred by static analysis", confidence: 0, userConfirmed: false },
+      { scanKey, assumptionKey: "migration-time", label: "Representative migration time", value: "0", unit: "months", source: "Not inferred by static analysis", confidence: 0, userConfirmed: false },
+      { scanKey, assumptionKey: "crqc-horizon", label: "Planning horizon to CRQC", value: "9", unit: "years", source: "Default planning assumption", confidence: 52, userConfirmed: false },
+    ]);
+  });
   return getScanDetail(userId, scanKey);
 }
 

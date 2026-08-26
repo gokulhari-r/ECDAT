@@ -350,3 +350,11 @@ Migration `0003_outgoing_tyrannus.sql` added `updatedAt` to scans; `createdAt`/`
 The Command Center Scan action now uses a bright orange, high-contrast gradient with a clear enabled, hover, focus, pending, and disabled treatment. It remains the same keyboard-accessible button and still communicates pending work as **Scanning…**.
 
 After a successful scan, the short completion presentation continues to surface the catalogued asset count. Before returning to Command Center, the intake state is reset to `idle` with no retained completion asset count, so the existing form is submission-ready on return rather than remaining disabled. The focused reset helper is covered by a new unit test. Command Center rendering confirmed the visibly brighter ready-state action; TypeScript passed and Vitest completed **67 tests across twenty-three files**.
+
+## Safe static repository-scanner MVP
+
+ECDAT now supports a bounded static-analysis path for a validated public GitHub repository root. The scanner reads GitHub metadata and at most forty allowlisted TypeScript, JavaScript, Python, Java, or Go source files, with 120 KB per-file and 600 KB total-content limits. It excludes dependency, build, and generated-content paths. Repository content is fetched as text only; ECDAT does not clone, build, install, or execute it.
+
+The initial rules detect selected RSA, ECDSA, AES, and AES-GCM usage patterns. Findings retain a file-and-line source location, a static-analysis provenance statement, explicit "not inferred" business-data fields, and evidence stating that the source was not executed. Protected `ecdat.scanRepository` persists results through the existing scan, CBOM, relationship, recommendation, wave, and export contracts under the truthful `repository-static` source value, while the deterministic scenario path remains available.
+
+Local fixture tests cover URL restrictions, pattern detection, bounded GitHub request flow, no-clone behavior, and transactional persistence. The managed database enum was inspected after migration. Command Center rendering confirmed the new public-repository explanation and retained scenario control. TypeScript passed and Vitest completed **71 tests across twenty-five files**.

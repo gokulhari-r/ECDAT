@@ -95,7 +95,7 @@ function finding(input: Omit<SeedFinding, "riskLevel" | "hndlExposure"> & { crqc
   };
 }
 
-function recommendationsFor(findings: SeedFinding[]): SeedRecommendation[] {
+export function recommendationsFor(findings: SeedFinding[]): SeedRecommendation[] {
   return findings
     .filter(finding => finding.quantumVulnerable || finding.classicalRisk === "High")
     .map((finding, index) => {
@@ -184,7 +184,7 @@ function recommendationsFor(findings: SeedFinding[]): SeedRecommendation[] {
     });
 }
 
-function relationshipsFor(displayName: string, scenarioId: ScenarioId, findings: SeedFinding[]): SeedRelationship[] {
+export function relationshipsFor(displayName: string, scenarioId: string, findings: SeedFinding[]): SeedRelationship[] {
   const serviceNode = `service:${displayName}`;
   const endpointNode = `endpoint:${scenarioId.replace(/-/g, " ")} public boundary`;
   const relationships: SeedRelationship[] = [];
