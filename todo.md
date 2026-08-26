@@ -162,3 +162,6 @@
 - [x] Validate any approved schema change through migrations, persistence checks, TypeScript, and Vitest; document and checkpoint the outcome.
 - [x] Add only safe timestamps and query indexes to existing ECDAT tables; do not add foreign keys or local environment files.
 - [x] Apply the additive migration through the managed database workflow and verify schema, persistence, TypeScript, and Vitest.
+- [x] Make the Command Center Scan action visually prominent while preserving all accessibility and loading behavior.
+- [x] Reset the scan form to a submission-ready state whenever the user re-enters Command Center after a completed scan.
+- [x] Verify bright Scan action treatment, re-entry behavior, TypeScript, and Vitest; document and checkpoint the update.

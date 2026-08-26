@@ -344,3 +344,9 @@ All requested competition, problem-statement, judge-demo, and demo-ready labels 
 The submitted table plan was reconciled against the existing `drizzle/schema.ts`, persistence helpers, and three prior migrations. All seven operational tables already existed and were actively used by the transactional scenario-run path, so no duplicate schema, local environment file, or foreign-key retrofit was introduced. The approved delta was limited to additive metadata and lookup support.
 
 Migration `0003_outgoing_tyrannus.sql` added `updatedAt` to scans; `createdAt`/`updatedAt` to assumptions and recommendations; and `createdAt` to relationships and migration waves. It also added lookup indexes for scan ownership, assumptions by scan, recommendations by scan/finding, relationships by scan, and migration waves by scan. The migration contains no drops, type changes, foreign keys, or data-rewriting statements. Managed database inspection confirmed all seven requested timestamp columns with timestamp defaults and all six indexes. TypeScript passed and Vitest completed **66 tests across twenty-three files**.
+
+## Scan action readiness update
+
+The Command Center Scan action now uses a bright orange, high-contrast gradient with a clear enabled, hover, focus, pending, and disabled treatment. It remains the same keyboard-accessible button and still communicates pending work as **Scanning…**.
+
+After a successful scan, the short completion presentation continues to surface the catalogued asset count. Before returning to Command Center, the intake state is reset to `idle` with no retained completion asset count, so the existing form is submission-ready on return rather than remaining disabled. The focused reset helper is covered by a new unit test. Command Center rendering confirmed the visibly brighter ready-state action; TypeScript passed and Vitest completed **67 tests across twenty-three files**.

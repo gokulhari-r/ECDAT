@@ -393,6 +393,10 @@ body:has(.sih-demo-sidebar) {
 #lab-root main::before { background-image: linear-gradient(rgba(253,196,72,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(253,196,72,.025) 1px, transparent 1px); background-size: 36px 36px; }
 #lab-root section.rounded-3xl, #lab-root article.rounded-3xl { border-color: rgba(253,196,72,.30) !important; border-radius: 10px !important; background-image: linear-gradient(135deg, #1b1b1c, #15110f) !important; }
 
+.scan-submit-button { border: 1px solid #ffb046 !important; background: linear-gradient(135deg, #ff8f3c, #ff4d00 58%, #df3003) !important; color: #fff !important; box-shadow: 0 0 0 1px rgba(255,143,60,.16), 0 10px 26px rgba(255,77,0,.32), inset 0 1px 0 rgba(255,255,255,.34); }
+.scan-submit-button:hover:not(:disabled) { border-color: #fff1cc !important; background: linear-gradient(135deg, #ffb046, #ff6200 58%, #fc4c1f) !important; box-shadow: 0 0 0 3px rgba(255,143,60,.12), 0 12px 32px rgba(255,77,0,.44), inset 0 1px 0 rgba(255,255,255,.42); }
+.scan-submit-button:disabled { border-color: rgba(255,255,255,.12) !important; background: #4b2418 !important; color: rgba(255,255,255,.68) !important; box-shadow: none; }
+
 html:not(.dark) [data-sidebar="sidebar"].sih-demo-sidebar { background: linear-gradient(180deg, #fff9f5, #f2eee9) !important; border-color: rgba(223,48,3,.22) !important; }
 html:not(.dark) .sih-demo-sidebar-header { background: linear-gradient(125deg, rgba(252,76,31,.18), transparent 62%); }
 html:not(.dark) .sih-demo-brand-name { color: #211b18; }
