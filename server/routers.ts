@@ -8,6 +8,7 @@ import { buildCopilotOutputSchema, buildCryptoAnalystPrompt, parseCopilotReply }
 import { buildSeededPreviewExport } from "./ecdatPreviewExport";
 import { getSeededScenario, scenarioCatalog, scenarioIds } from "./ecdatSeed";
 import { invokeLLM } from "./_core/llm";
+import { RepositoryScanError } from "./scanners/repositoryScanner";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -40,7 +41,20 @@ export const appRouter = router({
       .mutation(({ ctx, input }) => createScenarioRun(ctx.user.id, input.scenario, input.repositoryUrl)),
     scanRepository: protectedProcedure
       .input(z.object({ repositoryUrl: z.string().url().max(500) }))
-      .mutation(({ ctx, input }) => createRepositoryStaticScan(ctx.user.id, input.repositoryUrl)),
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const detail = await createRepositoryStaticScan(ctx.user.id, input.repositoryUrl);
+          return { status: "completed" as const, detail };
+        } catch (error) {
+          if (error instanceof RepositoryScanError) {
+            return { status: "unavailable" as const, message: error.code === "access" ? "That public GitHub repository could not be read. Check that the repository exists and is publicly accessible." : error.message };
+          }
+          if (error instanceof Error && error.message.startsWith("No supported cryptographic source patterns")) {
+            return { status: "unavailable" as const, message: error.message };
+          }
+          throw error;
+        }
+      }),
     scans: protectedProcedure.query(({ ctx }) => listUserScans(ctx.user.id)),
     detail: protectedProcedure
       .input(z.object({ scanKey: z.string().min(1) }))

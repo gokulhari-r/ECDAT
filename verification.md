@@ -369,6 +369,12 @@ Repository analysis no longer fails immediately when the GitHub metadata endpoin
 
 When both the metadata request and bounded fallback are unavailable, Command Center now displays the server’s retry guidance rather than the opaque HTTP response. The path has fixture coverage for metadata `403` recovery through an archive, alongside the existing URL and no-clone controls. TypeScript passed and Vitest completed **72 tests across twenty-five files**.
 
+## Repository intake mutation-error correction
+
+Seeded scenario cards no longer place their illustrative repository placeholders into the optional repository-analysis field. Selecting a scenario now clears that field and returns the intake to the normal deterministic-scan state, so the default **Scan** action cannot contact GitHub or produce a placeholder `404`/rate-limit error. The optional field is visually labelled as a public GitHub root input and only changes the action to **Analyze repo** when it contains a valid root URL.
+
+Expected availability outcomes are now returned by the protected repository endpoint as successful `unavailable` responses, not mutation errors. A missing or inaccessible public repository receives clear guidance; rate limiting retains its retry guidance; and neither outcome writes scan records. Router tests cover both paths, while the Command Center capture confirms the cleared scenario intake. TypeScript passed and Vitest completed **74 tests across twenty-six files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)

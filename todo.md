@@ -170,3 +170,6 @@
 - [x] Integrate the repository-scanner MVP into the existing scan flow without replacing seeded scenarios, then verify security controls, persistence, TypeScript, and Vitest.
 - [x] Diagnose and fix the public GitHub repository-analysis metadata request failure when GitHub returns HTTP 403.
 - [x] Add resilient metadata acquisition, user-facing recovery guidance, and regression coverage without weakening repository URL safeguards.
+- [x] Prevent seeded scenario placeholder targets and malformed public targets from triggering repository-analysis mutations.
+- [x] Make real public-repository analysis an explicit user action with clear unavailable-state guidance and no unhandled mutation errors.
+- [x] Verify the corrected scan intake, rate-limit handling, TypeScript, and Vitest; document and checkpoint the fix.
