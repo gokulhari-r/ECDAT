@@ -111,3 +111,4 @@
 - [x] Rename the reporting workspace to Evidence & Reports and build the scan-derived assessment package, evidence coverage, readiness, report packages, preview, and provenance sections.
 - [x] Add a traceable evidence chain with observed/derived/estimated/recommended status, and connect valid report actions to Graph, Spatial Mode, Roadmap, and implemented exports.
 - [x] Add tests and responsive browser verification for the Evidence & Reports page, then document and checkpoint the completed redesign.
+- [x] Add a CBOM Explorer HTML download action alongside the existing structured JSON export, then verify and checkpoint it.

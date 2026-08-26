@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildEvidenceChain, buildReportEvidenceModel } from "./reportEvidence";
+import { buildEvidenceChain, buildEvidenceReportHtml, buildReportEvidenceModel } from "./reportEvidence";
 
 const finding = {
   findingKey: "rsa", assetName: "Payment TLS", assetType: "Certificate", algorithm: "RSA-2048", cryptoRole: "TLS", library: "OpenSSL", version: "1.1.1w", sourceLocation: "infra/nginx/tls.conf:18", usageContext: "Payment API", confidence: 92, evidence: "Public TLS certificate", provenance: "scanner", riskLevel: "Critical", quantumRisk: "Vulnerable", quantumVulnerable: true, hndlExposure: true, migrationMonths: 12,
@@ -17,5 +17,13 @@ describe("Evidence & Reports view model", () => {
     const chain = buildEvidenceChain(finding, { findingKey: "rsa", title: "Adopt hybrid TLS", candidate: "Hybrid TLS", migrationNotes: "Validate clients", priority: 1 }, [{ sourceNode: "service:Payment API", targetNode: "algorithm:RSA-2048", relationship: "uses", evidence: "config", confidence: 90 }]);
     expect(chain.map(item => item.status)).toEqual(["Observed", "Observed", "Derived", "Derived", "Estimated", "Recommended"]);
     expect(chain.find(item => item.label === "Impact lens")?.detail).toContain("not runtime reachability");
+  });
+
+  it("builds a technical CBOM HTML artifact from the same evidence model used by the explorer", () => {
+    const model = buildReportEvidenceModel({ displayName: "Payments", totalAssets: 1, criticalCount: 1, quantumVulnerableCount: 1, hndlCount: 1, quantumReadiness: 42, findings: [finding], recommendations: [], relationships: [] });
+    const html = buildEvidenceReportHtml({ packageKey: "technical", generatedAt: new Date("2026-08-25T00:00:00Z"), model });
+    expect(html).toContain("Technical CBOM");
+    expect(html).toContain("Payment TLS");
+    expect(html).toContain("infra/nginx/tls.conf:18");
   });
 });
