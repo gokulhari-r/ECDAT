@@ -188,3 +188,6 @@
 - [x] Enable Dependency Graph free-look navigation with trackpad zoom and unrestricted pointer panning.
 - [x] Preserve selection, reset, visible zoom controls, keyboard access, and responsive graph behavior while adding free-look interaction.
 - [x] Add interaction regression coverage, visually verify the graph, document, and checkpoint the free-look update.
+- [x] Map the progressive dependency-intelligence concept onto only the existing evidence-backed graph data and current free-look canvas.
+- [x] Add Overview, Explore, and Trace Impact states that progressively focus and reveal observed graph relationships without inventing code-level evidence.
+- [x] Add selection breadcrumbs, back/reset navigation, explicit visual-state guidance, tests, visual verification, documentation, and a release checkpoint for the progressive graph enhancement.

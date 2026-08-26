@@ -403,6 +403,12 @@ The Dependency Graph now supports unrestricted canvas navigation. Users can drag
 
 The viewport math is covered with focused tests for arbitrary panning, point-preserving pinch zoom, and the supported zoom range. The graph rendered correctly in a desktop visual check. TypeScript passed and Vitest completed **85 tests across twenty-nine files**.
 
+## Progressive Dependency Intelligence
+
+The existing global dependency landscape remains the default **Overview**. Selecting an observed graph entity switches to **Explore**, which focuses its observed relationship chain and reveals only the selected finding’s persisted source-location evidence as violet leaves. **Trace impact** narrows the canvas to the bounded reverse-path lens already used by the blast-radius panel, with red path emphasis. The canvas remains free-look: drag or two-finger scroll pans, and trackpad pinch zooms toward the pointer.
+
+The detail context now presents a repository/type/entity breadcrumb with a direct return to Overview and a Trace blast radius control. No code-dependency node is fabricated: progressive source leaves exist only where the active finding carries an observed source location. Desktop and 390 px mobile layouts were visually verified. TypeScript passed and Vitest completed **87 tests across thirty files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
