@@ -157,3 +157,8 @@
 - [x] Verify the full competition-demo UI at desktop/mobile widths, with accessibility and TypeScript/Vitest regression checks; document and checkpoint the work.
 - [x] Remove every visible SIH, problem-statement, judge-demo, and demo-ready reference from the ECDAT UI.
 - [x] Verify the cleaned visual framing, regression coverage, and release the removal as a focused checkpoint.
+- [x] Audit the proposed seven-table ECDAT schema against the existing Drizzle schema, persistence queries, and migration state.
+- [x] Prepare and confirm a safe managed migration plan before applying any database changes or altering managed configuration.
+- [x] Validate any approved schema change through migrations, persistence checks, TypeScript, and Vitest; document and checkpoint the outcome.
+- [x] Add only safe timestamps and query indexes to existing ECDAT tables; do not add foreign keys or local environment files.
+- [x] Apply the additive migration through the managed database workflow and verify schema, persistence, TypeScript, and Vitest.

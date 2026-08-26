@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   int,
   mysqlEnum,
   mysqlTable,
@@ -55,8 +56,9 @@ export const ecdatScans = mysqlTable(
     hndlCount: int("hndlCount").notNull(),
     quantumReadiness: int("quantumReadiness").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
-  table => [unique("ecdatScans_scanKey_unique").on(table.scanKey)]
+  table => [unique("ecdatScans_scanKey_unique").on(table.scanKey), index("ecdatScans_userId_idx").on(table.userId)]
 );
 
 export const ecdatFindings = mysqlTable(
@@ -92,53 +94,75 @@ export const ecdatFindings = mysqlTable(
   table => [unique("ecdatFindings_scanKey_findingKey_unique").on(table.scanKey, table.findingKey)]
 );
 
-export const ecdatAssumptions = mysqlTable("ecdatAssumptions", {
-  id: int("id").autoincrement().primaryKey(),
-  scanKey: varchar("scanKey", { length: 32 }).notNull(),
-  assumptionKey: varchar("assumptionKey", { length: 96 }).notNull(),
-  label: varchar("label", { length: 160 }).notNull(),
-  value: varchar("value", { length: 64 }).notNull(),
-  unit: varchar("unit", { length: 48 }).notNull(),
-  source: varchar("source", { length: 160 }).notNull(),
-  confidence: int("confidence").notNull(),
-  userConfirmed: boolean("userConfirmed").default(false).notNull(),
-});
+export const ecdatAssumptions = mysqlTable(
+  "ecdatAssumptions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    scanKey: varchar("scanKey", { length: 32 }).notNull(),
+    assumptionKey: varchar("assumptionKey", { length: 96 }).notNull(),
+    label: varchar("label", { length: 160 }).notNull(),
+    value: varchar("value", { length: 64 }).notNull(),
+    unit: varchar("unit", { length: 48 }).notNull(),
+    source: varchar("source", { length: 160 }).notNull(),
+    confidence: int("confidence").notNull(),
+    userConfirmed: boolean("userConfirmed").default(false).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("ecdatAssumptions_scanKey_idx").on(table.scanKey)]
+);
 
-export const ecdatRecommendations = mysqlTable("ecdatRecommendations", {
-  id: int("id").autoincrement().primaryKey(),
-  scanKey: varchar("scanKey", { length: 32 }).notNull(),
-  findingKey: varchar("findingKey", { length: 48 }).notNull(),
-  recommendationType: varchar("recommendationType", { length: 64 }).notNull(),
-  title: varchar("title", { length: 255 }).notNull(),
-  candidate: varchar("candidate", { length: 255 }).notNull(),
-  migrationNotes: text("migrationNotes").notNull(),
-  compatibility: text("compatibility").notNull(),
-  indicativeEffort: varchar("indicativeEffort", { length: 128 }).notNull(),
-  indicativeLatency: varchar("indicativeLatency", { length: 128 }).notNull(),
-  priority: int("priority").notNull(),
-  status: mysqlEnum("status", ["open", "planned", "accepted"]).default("open").notNull(),
-});
+export const ecdatRecommendations = mysqlTable(
+  "ecdatRecommendations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    scanKey: varchar("scanKey", { length: 32 }).notNull(),
+    findingKey: varchar("findingKey", { length: 48 }).notNull(),
+    recommendationType: varchar("recommendationType", { length: 64 }).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    candidate: varchar("candidate", { length: 255 }).notNull(),
+    migrationNotes: text("migrationNotes").notNull(),
+    compatibility: text("compatibility").notNull(),
+    indicativeEffort: varchar("indicativeEffort", { length: 128 }).notNull(),
+    indicativeLatency: varchar("indicativeLatency", { length: 128 }).notNull(),
+    priority: int("priority").notNull(),
+    status: mysqlEnum("status", ["open", "planned", "accepted"]).default("open").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("ecdatRecommendations_scanKey_idx").on(table.scanKey), index("ecdatRecommendations_findingKey_idx").on(table.findingKey)]
+);
 
-export const ecdatRelationships = mysqlTable("ecdatRelationships", {
-  id: int("id").autoincrement().primaryKey(),
-  scanKey: varchar("scanKey", { length: 32 }).notNull(),
-  sourceNode: varchar("sourceNode", { length: 96 }).notNull(),
-  targetNode: varchar("targetNode", { length: 96 }).notNull(),
-  relationship: varchar("relationship", { length: 96 }).notNull(),
-  evidence: text("evidence").notNull(),
-  confidence: int("confidence").notNull(),
-});
+export const ecdatRelationships = mysqlTable(
+  "ecdatRelationships",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    scanKey: varchar("scanKey", { length: 32 }).notNull(),
+    sourceNode: varchar("sourceNode", { length: 96 }).notNull(),
+    targetNode: varchar("targetNode", { length: 96 }).notNull(),
+    relationship: varchar("relationship", { length: 96 }).notNull(),
+    evidence: text("evidence").notNull(),
+    confidence: int("confidence").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [index("ecdatRelationships_scanKey_idx").on(table.scanKey)]
+);
 
-export const ecdatMigrationWaves = mysqlTable("ecdatMigrationWaves", {
-  id: int("id").autoincrement().primaryKey(),
-  scanKey: varchar("scanKey", { length: 32 }).notNull(),
-  wave: int("wave").notNull(),
-  title: varchar("title", { length: 160 }).notNull(),
-  rationale: text("rationale").notNull(),
-  scope: text("scope").notNull(),
-  indicativeEffort: varchar("indicativeEffort", { length: 128 }).notNull(),
-  dependencies: text("dependencies").notNull(),
-});
+export const ecdatMigrationWaves = mysqlTable(
+  "ecdatMigrationWaves",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    scanKey: varchar("scanKey", { length: 32 }).notNull(),
+    wave: int("wave").notNull(),
+    title: varchar("title", { length: 160 }).notNull(),
+    rationale: text("rationale").notNull(),
+    scope: text("scope").notNull(),
+    indicativeEffort: varchar("indicativeEffort", { length: 128 }).notNull(),
+    dependencies: text("dependencies").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [index("ecdatMigrationWaves_scanKey_idx").on(table.scanKey)]
+);
 
 export type EcdatScan = typeof ecdatScans.$inferSelect;
 export type InsertEcdatScan = typeof ecdatScans.$inferInsert;

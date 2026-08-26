@@ -338,3 +338,9 @@ Desktop captures covered Command Center, CBOM Inventory, Dependency Graph, Migra
 ### Competition-reference label cleanup
 
 All requested competition, problem-statement, judge-demo, and demo-ready labels were removed from the shared sidebar, initialization treatment, and page-header proof area. The replacement copy uses only product-oriented wording: **Cryptographic intelligence**, **Active workspace**, and the retained evidence status. Search, navigation, theme, notification, protected-account, and Lab controls were not changed. Desktop Command Center and Dependency Graph captures confirmed the cleaned header framing, while TypeScript and the complete **66-test** Vitest suite passed.
+
+## Safe additive schema migration
+
+The submitted table plan was reconciled against the existing `drizzle/schema.ts`, persistence helpers, and three prior migrations. All seven operational tables already existed and were actively used by the transactional scenario-run path, so no duplicate schema, local environment file, or foreign-key retrofit was introduced. The approved delta was limited to additive metadata and lookup support.
+
+Migration `0003_outgoing_tyrannus.sql` added `updatedAt` to scans; `createdAt`/`updatedAt` to assumptions and recommendations; and `createdAt` to relationships and migration waves. It also added lookup indexes for scan ownership, assumptions by scan, recommendations by scan/finding, relationships by scan, and migration waves by scan. The migration contains no drops, type changes, foreign keys, or data-rewriting statements. Managed database inspection confirmed all seven requested timestamp columns with timestamp defaults and all six indexes. TypeScript passed and Vitest completed **66 tests across twenty-three files**.
