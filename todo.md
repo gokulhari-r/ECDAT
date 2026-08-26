@@ -124,4 +124,9 @@
 - [x] Rebuild selected-candidate detail with current-to-target architecture, evidence-backed impact, relative effort, Mosca decision context, wave/dependency scheduling, and execution status.
 - [x] Preserve contextual links to CBOM, Dependency Graph, and existing `/migration` compatibility routes while replacing the prior Migration presentation.
 - [x] Add tests and verify saved, seeded, loading, empty, error, desktop, and mobile Migration states; document and checkpoint the from-scratch rebuild.
+- [x] Audit the current CBOM inventory and detail flow against the supplied source-of-truth and no-duplication requirements.
+- [x] Add a scan-derived inventory posture strip and analyst filters for HNDL, library, and confidence without replacing the existing table workflow.
+- [x] Rebuild the selected-asset drawer as an Asset Intelligence Drawer with distinct observed evidence, derived assessment/relationships, and recommended migration sections.
+- [x] Preserve and verify focused handoffs from the Asset Intelligence Drawer to Evidence & Reports, Dependency Graph, and Migration without duplicating those modules.
+- [x] Add tests and verify saved, seeded, loading, empty, error, desktop, and mobile CBOM states; document and checkpoint the CBOM evolution.
 - [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.

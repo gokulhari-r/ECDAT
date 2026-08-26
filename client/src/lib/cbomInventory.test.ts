@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cbomFindingFromSearch, filterCbomFindings, paginateCbomFindings, sortCbomFindings } from "./cbomInventory";
+import { buildCbomPosture, cbomFindingFromSearch, filterCbomFindings, paginateCbomFindings, sortCbomFindings } from "./cbomInventory";
 import type { InventoryFinding } from "@/lib/inventoryUtils";
 
 const findings: InventoryFinding[] = [
@@ -25,5 +25,12 @@ describe("rebuilt CBOM table utilities", () => {
   it("opens evidence only for an explicit finding deep link", () => {
     expect(cbomFindingFromSearch("?risk=Critical")).toBeNull();
     expect(cbomFindingFromSearch("?finding=alpha&risk=Critical")).toBe("alpha");
+  });
+  it("filters by observed HNDL, library, and confidence without adding synthetic assets", () => {
+    expect(filterCbomFindings(findings, { query: "", risk: "all", quantum: "all", hndl: "qualified", library: "OpenSSL", minConfidence: "90" }).map(item => item.findingKey)).toEqual(["alpha"]);
+    expect(filterCbomFindings(findings, { query: "", risk: "all", quantum: "all", hndl: "not-qualified", minConfidence: "99" })).toEqual([]);
+  });
+  it("summarizes only active observed findings and relationship node types for the CBOM posture strip", () => {
+    expect(buildCbomPosture(findings, 83, [{ sourceNode: "service:Payments", targetNode: "library:OpenSSL" }, { sourceNode: "endpoint:Public", targetNode: "algorithm:RSA-2048" }])).toMatchObject({ totalAssets: 83, findings: 2, quantumVulnerable: 1, hndlExposed: 1, relatedServices: 2, relatedLibraries: 1 });
   });
 });

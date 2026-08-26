@@ -3,16 +3,36 @@ import type { InventoryFinding } from "@/lib/inventoryUtils";
 export const cbomSortKeys = ["risk", "asset", "algorithm", "role", "library", "version", "quantum", "confidence"] as const;
 export type CbomSortKey = (typeof cbomSortKeys)[number];
 export type CbomSortDirection = "asc" | "desc";
-export type CbomFilters = { query: string; risk: string; quantum: string };
+export type CbomFilters = { query: string; risk: string; quantum: string; hndl?: string; library?: string; minConfidence?: string };
 
 const riskRank: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1 };
 
 export function filterCbomFindings(findings: InventoryFinding[], filters: CbomFilters) {
   const query = filters.query.trim().toLowerCase();
+  const minimumConfidence = filters.minConfidence && filters.minConfidence !== "all" ? Number(filters.minConfidence) : 0;
   return findings.filter(finding => {
     const searchable = [finding.assetName, finding.algorithm, finding.cryptoRole, finding.library, finding.version, finding.sourceLocation, finding.usageContext].filter(Boolean).join(" ").toLowerCase();
-    return (!query || searchable.includes(query)) && (filters.risk === "all" || finding.riskLevel === filters.risk) && (filters.quantum === "all" || (filters.quantum === "vulnerable" ? finding.quantumVulnerable : !finding.quantumVulnerable));
+    const matchesHndl = !filters.hndl || filters.hndl === "all" || (filters.hndl === "qualified" ? finding.hndlExposure : !finding.hndlExposure);
+    const matchesLibrary = !filters.library || filters.library === "all" || finding.library === filters.library;
+    return (!query || searchable.includes(query)) && (filters.risk === "all" || finding.riskLevel === filters.risk) && (filters.quantum === "all" || (filters.quantum === "vulnerable" ? finding.quantumVulnerable : !finding.quantumVulnerable)) && matchesHndl && matchesLibrary && finding.confidence >= minimumConfidence;
   });
+}
+
+export function buildCbomPosture(findings: InventoryFinding[], totalAssets: number, relationships: Array<{ sourceNode: string; targetNode: string }>) {
+  const nodes = Array.from(new Set(relationships.flatMap(relationship => [relationship.sourceNode, relationship.targetNode])));
+  const relatedServices = nodes.filter(node => /^(service|endpoint):/i.test(node)).length;
+  const relatedLibraries = new Set([
+    ...findings.map(finding => finding.library).filter((library): library is string => Boolean(library)),
+    ...nodes.filter(node => /^library:/i.test(node)).map(node => node.replace(/^library:/i, "")),
+  ]).size;
+  return {
+    totalAssets,
+    findings: findings.length,
+    quantumVulnerable: findings.filter(finding => finding.quantumVulnerable).length,
+    hndlExposed: findings.filter(finding => finding.hndlExposure).length,
+    relatedServices,
+    relatedLibraries,
+  };
 }
 
 export function sortCbomFindings(findings: InventoryFinding[], key: CbomSortKey, direction: CbomSortDirection) {
