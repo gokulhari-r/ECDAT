@@ -103,7 +103,7 @@ export default function Graph() {
     </div>
 
     <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-      <section className="overflow-hidden rounded-3xl border border-white/8 bg-[radial-gradient(circle_at_48%_0%,rgba(34,211,238,0.1),transparent_38%),#091423]">
+      <section className="overflow-hidden rounded-3xl border border-white/8 bg-[#191c1f]">
         <div className="overflow-x-auto overscroll-x-contain [scrollbar-color:#334155_transparent]">
         <svg ref={svgRef} className="h-[590px] min-w-[880px] w-full touch-none select-none" viewBox="0 0 1120 620" role="img" aria-label="Interactive graph of observed cryptographic relationships" onPointerDown={event => { dragOrigin.current = { x: event.clientX, y: event.clientY, panX: transform.x, panY: transform.y, moved: false }; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { const origin = dragOrigin.current; if (!origin) return; const dx = (event.clientX - origin.x) / transform.scale; const dy = (event.clientY - origin.y) / transform.scale; if (Math.abs(dx) + Math.abs(dy) > 3) origin.moved = true; setTransform(current => ({ ...current, x: origin.panX + dx, y: origin.panY + dy })); }} onPointerUp={event => { if (!dragOrigin.current) return; dragOrigin.current = null; event.currentTarget.releasePointerCapture(event.pointerId); }}>
           <defs><filter id="chainGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter><pattern id="graphGrid" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M 42 0 L 0 0 0 42" fill="none" stroke="rgba(148,163,184,0.1)" strokeWidth="1" /></pattern></defs>
@@ -126,7 +126,7 @@ export default function Graph() {
 }
 
 function GraphLegend() {
-  const legend = [{ label: "Service", color: "#67e8f9" }, { label: "Library", color: "#a78bfa" }, { label: "Algorithm", color: "#fb7185" }, { label: "Certificate", color: "#34d399" }, { label: "Endpoint", color: "#a5f3fc" }, { label: "Data", color: "#60a5fa" }];
+  const legend = [{ label: "Service", color: "#fc4c1f" }, { label: "Library", color: "#fdc448" }, { label: "Algorithm", color: "#ff0003" }, { label: "Certificate", color: "#3eb75e" }, { label: "Endpoint", color: "#fdc448" }, { label: "Data", color: "#fc4c1f" }];
   return <><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-cyan-300/10 text-cyan-100"><Network className="h-4 w-4" /></span><div><p className="text-sm font-medium text-slate-100">Blast-radius lens</p><p className="text-xs text-slate-500">Select an observed entity</p></div></div><div className="mt-6 rounded-2xl border border-white/7 bg-[#06101c]/70 p-4 text-sm leading-6 text-slate-400">Select a node to highlight its observed dependency chain and inspect a reverse-path impact lens.</div><div className="mt-5 space-y-2">{legend.map(item => <div key={item.label} className="flex items-center gap-2 rounded-lg border border-white/7 bg-white/[0.025] px-3 py-2 text-xs text-slate-300"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />{item.label}</div>)}</div></>;
 }
 

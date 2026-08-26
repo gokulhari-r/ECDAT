@@ -148,3 +148,6 @@
 - [x] Verify the Migration local-storage-unavailable warning and explicit seeded-preview/loading states before the Migration release checkpoint.
 - [x] Replace the observatory cyan/violet palette with the live CodeHunters SIH 2026 page palette: #060606, #1b1b1c, #fc4c1f, #df3003, #9f9f9f, #ffffff, and #ffffff14.
 - [x] Verify the reference-palette update in primary workspaces, light/dark themes, responsive views, TypeScript, and Vitest; document and checkpoint it.
+- [x] Inspect the supplied CodeHunters Academy design archive and map its actual layout, typography, components, surfaces, and responsive rules to ECDAT.
+- [x] Remove the current observatory colour treatment and replace ECDAT’s shared shell and workspace styling with the archive-derived UI system without changing workflows.
+- [x] Verify archive-derived UI replacement across primary desktop/mobile workspaces, light/dark themes, TypeScript, and Vitest; document and checkpoint it.
