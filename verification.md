@@ -443,9 +443,18 @@ The selected-evidence context card’s Back to overview and Trace blast radius a
 
 The Verified column’s local-plan removal control is now displayed as a compact green tick. Selecting it removes that completed item from the active browser-local plan using the existing scoped removal behavior; no scan evidence, recommendation, or server-side record is changed. The Reopen action remains available separately for items that should return to planning. A focused persistence test confirms that acknowledging a verified item removes only that local-plan entry. TypeScript passed and Vitest completed **91 tests across thirty-one files**.
 
+## Scan-backed PQC implementation guidance
+
+Migration now includes a selected-asset **PQC implementation guide** that converts the active finding’s observed algorithm, crypto role, quantum/HNDL signals, data lifetime, migration window, and existing generated candidate into a bounded planning path. Key-establishment findings link to ML-KEM / FIPS 203 guidance; signature findings present ML-DSA / FIPS 204 and SLH-DSA / FIPS 205 references. Symmetric and hash/KDF evidence is explicitly framed as crypto-agility and public-key-boundary planning rather than a falsely inferred PQC replacement. [5] [6] [7]
+
+Each guide exposes a generated planning target, three decision steps, validation gates, relevant assessment signals, standards links, and direct evidence, dependency-graph, and browser-local-plan actions. It does not claim runtime compatibility, conformance, post-migration exposure, or production readiness. The selected RSA-2048 guidance view was verified at desktop and 390 px mobile widths. Dedicated utility tests cover signature, key-establishment, and hash/KDF mappings. TypeScript passed and Vitest completed **94 tests across thirty-two files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
 [2] [GitHub REST API troubleshooting](https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api)
 [3] [CycloneDX Specification Overview](https://cyclonedx.org/specification/overview/)
 [4] [CycloneDX 1.6 JSON Schema](https://github.com/CycloneDX/specification/blob/master/schema/bom-1.6.schema.json)
+[5] [NIST FIPS 203: ML-KEM](https://csrc.nist.gov/pubs/fips/203/final)
+[6] [NIST FIPS 204: ML-DSA](https://csrc.nist.gov/pubs/fips/204/final)
+[7] [NIST FIPS 205: SLH-DSA](https://csrc.nist.gov/pubs/fips/205/final)

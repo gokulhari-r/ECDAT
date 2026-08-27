@@ -210,3 +210,8 @@
 - [x] Inspect the browser-local migration status model and verified-item actions for a safe completion/removal extension.
 - [x] Add a green completion control that removes a selected verified migration item from the active local plan.
 - [x] Add persistence coverage, visually verify the migration completion flow, document, and checkpoint the update.
+- [ ] Compare the supplied repository-scanner plan with ECDAT’s existing bounded static scanner and identify only safe compatible gaps.
+- [ ] Obtain approval for any safe scanner changes before modifying repository acquisition, analysis, or persistence behavior.
+- [x] Inspect current scan-backed recommendations, reports, and migration surfaces for the appropriate PQC guidance extension.
+- [x] Implement actionable PQC guidance and clear evidence-derived action pathways without changing repository-scanner safeguards.
+- [x] Add guidance coverage, verify the interface, document, and checkpoint the PQC guidance implementation.
