@@ -204,3 +204,6 @@
 - [x] Verify the refined command-search appearance, document, and checkpoint the visual adjustment.
 - [x] Remove normal wheel and trackpad-scroll panning from the Dependency Graph while retaining deliberate pointer drag and zoom controls.
 - [x] Verify the revised graph interaction, document, and checkpoint the graph-scroll update.
+- [x] Inspect the reported Dependency Graph evidence-context action overlap at constrained widths.
+- [x] Repair the graph context-card action layout so Back to overview and Trace blast radius never overlap.
+- [x] Verify the responsive action layout, document, and checkpoint the graph context repair.
