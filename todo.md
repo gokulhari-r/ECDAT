@@ -197,3 +197,6 @@
 - [x] Inspect the Asset Intelligence Drawer’s existing observed-asset CBOM export and determine the smallest scan-backed HTML export extension.
 - [x] Add a clearly labelled HTML export action beside the existing asset CBOM JSON export without changing drawer navigation or evidence context.
 - [x] Add export coverage, visually verify the drawer actions, document, and checkpoint the Asset Intelligence Drawer export update.
+- [x] Inspect the reported command-search modal and Active Workspace sidebar alignment defects without changing functional navigation.
+- [x] Repair command-search modal sizing/scroll containment and Active Workspace card alignment across responsive layouts.
+- [x] Add targeted coverage, visually verify desktop/mobile layouts, document, and checkpoint the alignment repair.

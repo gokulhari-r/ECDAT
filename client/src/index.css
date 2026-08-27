@@ -326,8 +326,8 @@ body:has(.sih-demo-sidebar) {
 .sih-demo-brand-mark { width: 42px; height: 42px; }
 .sih-demo-brand-name { display: block; color: #fff; font-family: "Space Grotesk", sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -.04em; line-height: 1; }
 .sih-demo-brand-subtitle { display: block; margin-top: 5px; color: #fdc448; font-family: "DM Mono", monospace; font-size: 9px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
-.sih-demo-sidebar-content { padding: 14px 10px !important; }
-.sih-demo-mission { position: relative; overflow: hidden; margin: 0 2px 20px; border: 1px solid rgba(252,76,31,.38); border-radius: 8px; padding: 13px; background: linear-gradient(135deg, rgba(252,76,31,.16), rgba(253,196,72,.045)); }
+.sih-demo-sidebar-content { box-sizing: border-box; padding: 14px 10px !important; }
+.sih-demo-mission { position: relative; box-sizing: border-box; display: flex; width: 100%; min-height: 104px; flex-direction: column; align-items: flex-start; justify-content: flex-start; overflow: hidden; margin: 0 0 20px; border: 1px solid rgba(252,76,31,.38); border-radius: 8px; padding: 13px; background: linear-gradient(135deg, rgba(252,76,31,.16), rgba(253,196,72,.045)); }
 .sih-demo-mission::after { position: absolute; right: -28px; bottom: -24px; width: 92px; height: 92px; border: 1px solid rgba(253,196,72,.28); border-radius: 50%; content: ""; }
 .sih-demo-mission > * { position: relative; z-index: 1; display: block; }
 .sih-demo-eyebrow, .sih-demo-nav-title { color: #fdc448; font-family: "DM Mono", monospace; font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
@@ -382,6 +382,14 @@ body:has(.sih-demo-sidebar) {
 .sih-demo-main .recharts-text { fill: #a9a39c; }
 
 .sih-demo-dialog { border: 1px solid rgba(253,196,72,.38) !important; border-radius: 9px !important; background: #171513 !important; box-shadow: 0 28px 80px rgba(0,0,0,.55); }
+.sih-demo-command-dialog { width: min(680px, calc(100vw - 32px)) !important; max-width: min(680px, calc(100vw - 32px)) !important; max-height: min(70dvh, 620px) !important; gap: 0 !important; }
+.sih-demo-command-dialog [data-slot="command"] { min-height: 0; max-height: min(70dvh, 620px); height: auto !important; }
+.sih-demo-command-dialog [data-slot="command-input-wrapper"] { flex: 0 0 auto; padding-right: 48px; }
+.sih-demo-command-dialog [data-slot="command-list"] { max-height: min(calc(70dvh - 52px), 568px) !important; min-height: 0; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 6px 10px 12px; }
+.sih-demo-command-dialog [cmdk-group-heading] { padding: 10px 10px 7px !important; }
+.sih-demo-command-dialog [cmdk-item] { min-height: 60px; border-radius: 7px; }
+.sih-demo-command-dialog [data-slot="command-list"]::-webkit-scrollbar { width: 8px; }
+.sih-demo-command-dialog [data-slot="command-list"]::-webkit-scrollbar-thumb { border: 2px solid #171513; border-radius: 999px; background: rgba(253,196,72,.38); }
 .sih-demo-notification-row { display: flex; width: 100%; gap: 11px; border: 1px solid rgba(255,255,255,.10); border-radius: 7px; background: rgba(255,255,255,.025); padding: 12px; text-align: left; }
 .sih-demo-notification-row:hover { border-color: rgba(253,196,72,.40); background: rgba(253,196,72,.05); }
 .sih-demo-boot { background: radial-gradient(circle at 50% 35%, rgba(252,76,31,.18), transparent 35%), #060606; }
