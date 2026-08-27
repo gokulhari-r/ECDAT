@@ -415,6 +415,12 @@ The current global graph was extended rather than replaced. Selecting an entity 
 
 Overview, Trace Impact, free-look panning/trackpad zoom, and the blast-radius context remain intact. The graph also now includes a local observed-evidence search. Dedicated utility coverage verifies manual expansion, bounded depth expansion, nested collapse, and observed-neighbor counts. Desktop and 390 px mobile views were checked. TypeScript passed and Vitest completed **89 tests across thirty-one files**.
 
+## Asset Intelligence Drawer HTML export
+
+The Asset Intelligence Drawer now presents two adjacent export actions: the existing selected-asset CBOM JSON file and a new **Export asset HTML** report. The HTML report contains only the chosen scan-backed finding, its observed evidence and provenance, its derived assessment attributes, and the generated migration recommendation when one exists. It keeps the assessment disclaimer and applies HTML escaping to all exported scan-derived text so the downloaded report does not render stored evidence as markup.
+
+The drawer continues to preserve its existing close, evidence, graph, migration, and Lab workflows. A persisted ECDSA finding was used for visual drawer verification. TypeScript passed and Vitest completed **90 tests across thirty-one files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)

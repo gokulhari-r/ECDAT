@@ -194,3 +194,6 @@
 - [x] Reconcile the supplied expandable-graph design with the current evidence-backed free-look, Overview, Explore, and Trace Impact graph rather than replacing it.
 - [x] Add true node expansion and collapse behavior with bounded relationship depth controls that reveal only observed dependency evidence.
 - [x] Integrate expansion with graph search, progressive modes, selection context, tests, responsive visual verification, documentation, and a release checkpoint.
+- [x] Inspect the Asset Intelligence Drawer’s existing observed-asset CBOM export and determine the smallest scan-backed HTML export extension.
+- [x] Add a clearly labelled HTML export action beside the existing asset CBOM JSON export without changing drawer navigation or evidence context.
+- [x] Add export coverage, visually verify the drawer actions, document, and checkpoint the Asset Intelligence Drawer export update.
