@@ -431,6 +431,10 @@ The sidebar’s Active Workspace card now uses full-width box sizing, zero compe
 
 The command-search input no longer draws a red rounded focus rectangle. It now suppresses only the redundant input outline inside the already bordered palette and uses a thin, restrained amber underline on the input row while focus remains active. Keyboard focus, shortcut opening, result selection, and Escape close are preserved. The revised desktop palette was visually checked. TypeScript passed and Vitest completed **90 tests across thirty-one files**.
 
+## Dependency Graph scroll lock
+
+Normal wheel and trackpad-scroll input no longer changes the Dependency Graph viewport. The prior wheel handler and horizontal canvas scrolling were removed, so normal scrolling continues through the surrounding page rather than moving graph content. Deliberate pointer drag, the visible zoom buttons, Reset graph, entity selection, progressive expansion, and Trace Impact remain available. The revised graph guidance and desktop layout were visually checked. TypeScript passed and Vitest completed **90 tests across thirty-one files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)

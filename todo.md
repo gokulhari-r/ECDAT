@@ -202,3 +202,5 @@
 - [x] Add targeted coverage, visually verify desktop/mobile layouts, document, and checkpoint the alignment repair.
 - [x] Remove the distracting red command-search input outline while retaining a subtle accessible focus state.
 - [x] Verify the refined command-search appearance, document, and checkpoint the visual adjustment.
+- [x] Remove normal wheel and trackpad-scroll panning from the Dependency Graph while retaining deliberate pointer drag and zoom controls.
+- [x] Verify the revised graph interaction, document, and checkpoint the graph-scroll update.
