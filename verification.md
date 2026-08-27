@@ -453,6 +453,12 @@ Each guide exposes a generated planning target, three decision steps, validation
 
 The supplied scanner plan was reviewed without implementation. Its `simple-git` clone, recursive local filesystem traversal, and `.env` inclusion are incompatible with ECDAT’s retained bounded public-GitHub text-analysis model. No repository acquisition, scanner, or persistence behavior changed as part of this review. The existing scanner continues to avoid cloning, executing repository content, retaining configuration values, and private-repository access.
 
+## Verified migration-item return and completion controls
+
+The Verified migration card now presents three distinct local actions: **Reopen** moves the record back to Planned, the compact red **cross** removes only its local status so the candidate returns to Discovered, and the green **tick** acknowledges it and removes it from the active local plan. Tick acknowledgements are persisted as browser-local dismissed finding keys, so they do not reappear until a user explicitly adds them again or clears local statuses. None of these controls change scan evidence, server records, or production state.
+
+The migration-store tests verify the different outcomes for dismissal and return-to-Discovered behavior. The Migration layout was visually checked at desktop width to confirm the execution-board composition remains stable. TypeScript passed and Vitest completed **94 tests across thirty-two files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)

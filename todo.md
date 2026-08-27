@@ -215,3 +215,6 @@
 - [x] Inspect current scan-backed recommendations, reports, and migration surfaces for the appropriate PQC guidance extension.
 - [x] Implement actionable PQC guidance and clear evidence-derived action pathways without changing repository-scanner safeguards.
 - [x] Add guidance coverage, verify the interface, document, and checkpoint the PQC guidance implementation.
+- [x] Inspect the verified migration-item actions and existing browser-local status transitions.
+- [x] Add a distinct cross control that returns a verified item to the Discovered container while retaining tick-based removal.
+- [x] Add local-plan transition coverage, visually verify the two actions, document, and checkpoint the update.

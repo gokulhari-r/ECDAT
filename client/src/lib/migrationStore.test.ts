@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addPlanItem, getPlan, migrationProgress, nextMigrationStatus, removePlanItem, updatePlanItemStatus, type MigrationDraft, type MigrationItem } from "./migrationStore";
+import { addPlanItem, dismissCompletedPlanItem, getPlan, migrationProgress, nextMigrationStatus, removePlanItem, returnPlanItemToDiscovered, updatePlanItemStatus, type MigrationDraft, type MigrationItem } from "./migrationStore";
 
 const draft: MigrationDraft = { findingKey: "rsa", assetName: "Payment TLS", algorithm: "RSA-2048", candidate: "Hybrid TLS", priority: "P1", complexity: "Indicative: 2–5 engineer-weeks" };
 const planned: MigrationItem = { ...draft, status: "Planned", addedAt: 1 };
@@ -18,13 +18,15 @@ describe("migration plan store", () => {
     expect(updated[0].status).toBe("In Progress");
     expect(removePlanItem(updated, "rsa").map(item => item.findingKey)).toEqual(["ecdsa"]);
   });
-  it("removes a verified item from the active local plan when completion is acknowledged", () => {
-    expect(removePlanItem([{ ...planned, status: "Complete" }], "rsa")).toEqual([]);
+  it("distinguishes completed-plan dismissal from returning an item to discovered", () => {
+    const complete = [{ ...planned, status: "Complete" as const }];
+    expect(dismissCompletedPlanItem(complete, [], "rsa")).toEqual({ items: [], dismissedFindingKeys: ["rsa"] });
+    expect(returnPlanItemToDiscovered(complete, ["rsa"], "rsa")).toEqual({ items: [], dismissedFindingKeys: [] });
   });
   it("reports progress relative to the available generated candidates", () => {
     expect(migrationProgress([{ ...planned, status: "Complete" }, { ...planned, findingKey: "ecdsa", status: "In Progress" }], 4)).toMatchObject({ total: 4, plannedItems: 2, Complete: 1, "In Progress": 1, Planned: 0, completePercent: 25 });
   });
   it("returns a visible warning rather than silently failing when browser storage is unavailable", () => {
-    expect(getPlan()).toEqual({ items: [], warning: "Migration-plan storage is unavailable in this environment." });
+    expect(getPlan()).toEqual({ items: [], dismissedFindingKeys: [], warning: "Migration-plan storage is unavailable in this environment." });
   });
 });

@@ -394,9 +394,11 @@ body:has(.sih-demo-sidebar) {
 .sih-demo-command-dialog [data-slot="command-list"]::-webkit-scrollbar-thumb { border: 2px solid #171513; border-radius: 999px; background: rgba(253,196,72,.38); }
 .graph-context-panel > .mt-3.flex.gap-2 { flex-direction: column; align-items: stretch; }
 .graph-context-panel > .mt-3.flex.gap-2 > button { width: 100%; }
-.observatory-migration section.border-emerald-200\/15 button.text-slate-500 { width: 28px; min-width: 28px; padding: 0; border: 1px solid rgba(110,231,183,.28); border-radius: 7px; background: rgba(16,185,129,.12); color: transparent !important; font-size: 0; }
-.observatory-migration section.border-emerald-200\/15 button.text-slate-500::after { content: "✓"; color: #a7f3d0; font-size: 15px; font-weight: 800; line-height: 1; }
-.observatory-migration section.border-emerald-200\/15 button.text-slate-500:hover { border-color: rgba(110,231,183,.58); background: rgba(16,185,129,.20); color: transparent !important; }
+.observatory-migration .sih-demo-plan-complete, .observatory-migration .sih-demo-plan-return { width: 28px; min-width: 28px; padding: 0; border-radius: 7px; }
+.observatory-migration .sih-demo-plan-complete { border: 1px solid rgba(110,231,183,.34); background: rgba(16,185,129,.14); color: #a7f3d0; }
+.observatory-migration .sih-demo-plan-complete:hover { border-color: rgba(110,231,183,.65); background: rgba(16,185,129,.25); color: #d1fae5; }
+.observatory-migration .sih-demo-plan-return { border: 1px solid rgba(252,165,165,.25); background: rgba(244,63,94,.08); color: #fda4af; }
+.observatory-migration .sih-demo-plan-return:hover { border-color: rgba(252,165,165,.55); background: rgba(244,63,94,.16); color: #fecdd3; }
 .sih-demo-notification-row { display: flex; width: 100%; gap: 11px; border: 1px solid rgba(255,255,255,.10); border-radius: 7px; background: rgba(255,255,255,.025); padding: 12px; text-align: left; }
 .sih-demo-notification-row:hover { border-color: rgba(253,196,72,.40); background: rgba(253,196,72,.05); }
 .sih-demo-boot { background: radial-gradient(circle at 50% 35%, rgba(252,76,31,.18), transparent 35%), #060606; }

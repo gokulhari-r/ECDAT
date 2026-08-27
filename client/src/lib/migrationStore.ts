@@ -13,6 +13,7 @@ export type MigrationItem = {
 
 export type MigrationDraft = Omit<MigrationItem, "status" | "addedAt">;
 export const migrationStorageKey = "ecdat-migration-plan-v1";
+export type MigrationPlanSnapshot = { items: MigrationItem[]; dismissedFindingKeys: string[] };
 
 export function nextMigrationStatus(status: MigrationStatus): MigrationStatus {
   return status === "Planned" ? "In Progress" : status === "In Progress" ? "Complete" : "Planned";
@@ -25,6 +26,14 @@ export function addPlanItem(items: MigrationItem[], item: MigrationDraft, addedA
 
 export function removePlanItem(items: MigrationItem[], findingKey: string) {
   return items.filter(item => item.findingKey !== findingKey);
+}
+
+export function dismissCompletedPlanItem(items: MigrationItem[], dismissedFindingKeys: string[], findingKey: string): MigrationPlanSnapshot {
+  return { items: removePlanItem(items, findingKey), dismissedFindingKeys: dismissedFindingKeys.includes(findingKey) ? dismissedFindingKeys : [...dismissedFindingKeys, findingKey] };
+}
+
+export function returnPlanItemToDiscovered(items: MigrationItem[], dismissedFindingKeys: string[], findingKey: string): MigrationPlanSnapshot {
+  return { items: removePlanItem(items, findingKey), dismissedFindingKeys: dismissedFindingKeys.filter(key => key !== findingKey) };
 }
 
 export function updatePlanItemStatus(items: MigrationItem[], findingKey: string, status?: MigrationStatus) {
@@ -41,53 +50,74 @@ function storage() {
   return window.localStorage;
 }
 
-function parsePlan(raw: string | null): MigrationItem[] {
-  if (!raw) return [];
+function parseItems(value: unknown): MigrationItem[] {
+  if (!Array.isArray(value)) return [];
   try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is MigrationItem => Boolean(item && typeof item.findingKey === "string" && typeof item.assetName === "string" && typeof item.algorithm === "string" && typeof item.candidate === "string" && typeof item.priority === "string" && typeof item.complexity === "string" && ["Planned", "In Progress", "Complete"].includes(item.status) && typeof item.addedAt === "number"));
+    return value.filter((item): item is MigrationItem => Boolean(item && typeof item.findingKey === "string" && typeof item.assetName === "string" && typeof item.algorithm === "string" && typeof item.candidate === "string" && typeof item.priority === "string" && typeof item.complexity === "string" && ["Planned", "In Progress", "Complete"].includes(item.status) && typeof item.addedAt === "number"));
   } catch {
     return [];
   }
 }
 
-function persist(items: MigrationItem[]) {
-  const target = storage();
-  if (!target) return { items, warning: "Migration-plan storage is unavailable in this environment." };
+function parsePlan(raw: string | null): MigrationPlanSnapshot {
+  if (!raw) return { items: [], dismissedFindingKeys: [] };
   try {
-    target.setItem(migrationStorageKey, JSON.stringify(items));
-    return { items, warning: null as string | null };
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return { items: parseItems(parsed), dismissedFindingKeys: [] };
+    if (!parsed || typeof parsed !== "object") return { items: [], dismissedFindingKeys: [] };
+    const record = parsed as { items?: unknown; dismissedFindingKeys?: unknown };
+    return { items: parseItems(record.items), dismissedFindingKeys: Array.isArray(record.dismissedFindingKeys) ? record.dismissedFindingKeys.filter((key): key is string => typeof key === "string") : [] };
   } catch {
-    return { items, warning: "Your browser could not save this migration-plan change locally." };
+    return { items: [], dismissedFindingKeys: [] };
+  }
+}
+
+function persist(plan: MigrationPlanSnapshot) {
+  const target = storage();
+  if (!target) return { ...plan, warning: "Migration-plan storage is unavailable in this environment." };
+  try {
+    target.setItem(migrationStorageKey, JSON.stringify(plan));
+    return { ...plan, warning: null as string | null };
+  } catch {
+    return { ...plan, warning: "Your browser could not save this migration-plan change locally." };
   }
 }
 
 export function getPlan() {
   const target = storage();
-  if (!target) return { items: [] as MigrationItem[], warning: "Migration-plan storage is unavailable in this environment." };
+  if (!target) return { items: [] as MigrationItem[], dismissedFindingKeys: [] as string[], warning: "Migration-plan storage is unavailable in this environment." };
   try {
-    return { items: parsePlan(target.getItem(migrationStorageKey)), warning: null as string | null };
+    return { ...parsePlan(target.getItem(migrationStorageKey)), warning: null as string | null };
   } catch {
-    return { items: [] as MigrationItem[], warning: "Your browser could not read the local migration plan." };
+    return { items: [] as MigrationItem[], dismissedFindingKeys: [] as string[], warning: "Your browser could not read the local migration plan." };
   }
 }
 
 export function addItem(item: MigrationDraft) {
   const current = getPlan();
-  return persist(addPlanItem(current.items, item));
+  return persist({ items: addPlanItem(current.items, item), dismissedFindingKeys: current.dismissedFindingKeys.filter(key => key !== item.findingKey) });
 }
 
 export function removeItem(findingKey: string) {
   const current = getPlan();
-  return persist(removePlanItem(current.items, findingKey));
+  return persist(returnPlanItemToDiscovered(current.items, current.dismissedFindingKeys, findingKey));
+}
+
+export function completeItem(findingKey: string) {
+  const current = getPlan();
+  return persist(dismissCompletedPlanItem(current.items, current.dismissedFindingKeys, findingKey));
+}
+
+export function returnToDiscovered(findingKey: string) {
+  const current = getPlan();
+  return persist(returnPlanItemToDiscovered(current.items, current.dismissedFindingKeys, findingKey));
 }
 
 export function updateStatus(findingKey: string, status?: MigrationStatus) {
   const current = getPlan();
-  return persist(updatePlanItemStatus(current.items, findingKey, status));
+  return persist({ items: updatePlanItemStatus(current.items, findingKey, status), dismissedFindingKeys: current.dismissedFindingKeys });
 }
 
 export function clearPlan() {
-  return persist([]);
+  return persist({ items: [], dismissedFindingKeys: [] });
 }
