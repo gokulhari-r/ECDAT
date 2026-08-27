@@ -449,6 +449,10 @@ Migration now includes a selected-asset **PQC implementation guide** that conver
 
 Each guide exposes a generated planning target, three decision steps, validation gates, relevant assessment signals, standards links, and direct evidence, dependency-graph, and browser-local-plan actions. It does not claim runtime compatibility, conformance, post-migration exposure, or production readiness. The selected RSA-2048 guidance view was verified at desktop and 390 px mobile widths. Dedicated utility tests cover signature, key-establishment, and hash/KDF mappings. TypeScript passed and Vitest completed **94 tests across thirty-two files**.
 
+## Supplied clone-based scanner plan review
+
+The supplied scanner plan was reviewed without implementation. Its `simple-git` clone, recursive local filesystem traversal, and `.env` inclusion are incompatible with ECDAT’s retained bounded public-GitHub text-analysis model. No repository acquisition, scanner, or persistence behavior changed as part of this review. The existing scanner continues to avoid cloning, executing repository content, retaining configuration values, and private-repository access.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
