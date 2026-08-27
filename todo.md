@@ -207,3 +207,6 @@
 - [x] Inspect the reported Dependency Graph evidence-context action overlap at constrained widths.
 - [x] Repair the graph context-card action layout so Back to overview and Trace blast radius never overlap.
 - [x] Verify the responsive action layout, document, and checkpoint the graph context repair.
+- [x] Inspect the browser-local migration status model and verified-item actions for a safe completion/removal extension.
+- [x] Add a green completion control that removes a selected verified migration item from the active local plan.
+- [x] Add persistence coverage, visually verify the migration completion flow, document, and checkpoint the update.

@@ -439,6 +439,10 @@ Normal wheel and trackpad-scroll input no longer changes the Dependency Graph vi
 
 The selected-evidence context card’s Back to overview and Trace blast radius actions now occupy two stacked, full-width rows. This removes their prior fixed-sidebar collision condition while preserving both actions and their labels. A selected persisted graph finding was verified at desktop width and in the 390 px mobile layout; neither button overlaps the other. TypeScript passed and Vitest completed **90 tests across thirty-one files**.
 
+## Local migration-plan completion control
+
+The Verified column’s local-plan removal control is now displayed as a compact green tick. Selecting it removes that completed item from the active browser-local plan using the existing scoped removal behavior; no scan evidence, recommendation, or server-side record is changed. The Reopen action remains available separately for items that should return to planning. A focused persistence test confirms that acknowledging a verified item removes only that local-plan entry. TypeScript passed and Vitest completed **91 tests across thirty-one files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)

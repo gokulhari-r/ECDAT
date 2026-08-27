@@ -18,6 +18,9 @@ describe("migration plan store", () => {
     expect(updated[0].status).toBe("In Progress");
     expect(removePlanItem(updated, "rsa").map(item => item.findingKey)).toEqual(["ecdsa"]);
   });
+  it("removes a verified item from the active local plan when completion is acknowledged", () => {
+    expect(removePlanItem([{ ...planned, status: "Complete" }], "rsa")).toEqual([]);
+  });
   it("reports progress relative to the available generated candidates", () => {
     expect(migrationProgress([{ ...planned, status: "Complete" }, { ...planned, findingKey: "ecdsa", status: "In Progress" }], 4)).toMatchObject({ total: 4, plannedItems: 2, Complete: 1, "In Progress": 1, Planned: 0, completePercent: 25 });
   });
