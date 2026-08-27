@@ -459,6 +459,10 @@ The Verified migration card now presents three distinct local actions: **Reopen*
 
 The migration-store tests verify the different outcomes for dismissal and return-to-Discovered behavior. The Migration layout was visually checked at desktop width to confirm the execution-board composition remains stable. TypeScript passed and Vitest completed **94 tests across thirty-two files**.
 
+## Authorized GitHub repository replacement
+
+At the user’s explicit instruction, the unrelated existing `gokulhari-r/ECDAT` `main` history was replaced with the complete current ECDAT project. GitHub CLI authentication was completed using the authorized `cheenu-exe` identity. The force-push was guarded against a changed remote tip and completed from remote `bafcd4c` to local project commit `0d470d5`. A post-push remote reference check confirmed that `refs/heads/main` matches `0d470d5db721bd3df8065eaa89cd6368f7794610`.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)

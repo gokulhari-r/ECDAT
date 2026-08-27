@@ -220,4 +220,4 @@
 - [x] Add local-plan transition coverage, visually verify the two actions, document, and checkpoint the update.
 - [x] Verify access to the specified GitHub repository and confirm the current ECDAT project is ready for the authorized full-main replacement.
 - [x] Prepare the complete current project commits and target-branch state for the authorized full-main replacement.
-- [ ] Force-push the authorized replacement, verify the remote state, and record the publication result.
+- [x] Force-push the authorized replacement, verify the remote state, and record the publication result.
