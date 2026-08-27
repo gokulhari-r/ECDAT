@@ -427,6 +427,10 @@ The command-search modal now has a fixed responsive visual envelope, one contain
 
 The sidebar’s Active Workspace card now uses full-width box sizing, zero competing horizontal margin, and a fixed vertical rhythm that aligns it with the search and navigation grid. Desktop and 390 px mobile command-search layouts were visually checked, along with the desktop sidebar. TypeScript passed and Vitest completed **90 tests across thirty-one files**.
 
+## Command-search focus refinement
+
+The command-search input no longer draws a red rounded focus rectangle. It now suppresses only the redundant input outline inside the already bordered palette and uses a thin, restrained amber underline on the input row while focus remains active. Keyboard focus, shortcut opening, result selection, and Escape close are preserved. The revised desktop palette was visually checked. TypeScript passed and Vitest completed **90 tests across thirty-one files**.
+
 ## References
 
 [1] [GitHub REST API rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)

@@ -200,3 +200,5 @@
 - [x] Inspect the reported command-search modal and Active Workspace sidebar alignment defects without changing functional navigation.
 - [x] Repair command-search modal sizing/scroll containment and Active Workspace card alignment across responsive layouts.
 - [x] Add targeted coverage, visually verify desktop/mobile layouts, document, and checkpoint the alignment repair.
+- [x] Remove the distracting red command-search input outline while retaining a subtle accessible focus state.
+- [x] Verify the refined command-search appearance, document, and checkpoint the visual adjustment.
